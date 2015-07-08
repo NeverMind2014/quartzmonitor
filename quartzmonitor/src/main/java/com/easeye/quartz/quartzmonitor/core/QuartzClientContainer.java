@@ -23,6 +23,9 @@ public class QuartzClientContainer {
 		quartzClientMap.remove(clientId);
 	}
 	
+	public static QuartzClient getQuartzClient(String clientId){
+	    return quartzClientMap.get(clientId);
+	}
 	public static void addQuartzConfig(QuartzConfig config) {
 		
 		configMap.put(config.getConfigId(),config);
