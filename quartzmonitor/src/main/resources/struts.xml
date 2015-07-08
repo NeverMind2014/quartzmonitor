@@ -33,10 +33,10 @@
 			<result name="input">/login.jsp</result>
 		</action>
 		<action name="list" class="com.easeye.quartz.quartzmonitor.action.ConfigAction" method="list">
-			<result name="list">/w_list.jsp</result>
+			<result name="list">/connectlist.jsp</result>
 		</action>
 		<action name="listScheduler" class="com.easeye.quartz.quartzmonitor.action.ConfigAction" method="listScheduler">
-			<result name="listScheduler">/scheduler_list.jsp</result>
+			<result name="listScheduler">/schedulerlist.jsp</result>
 		</action>
 		<action name="show" class="com.easeye.quartz.quartzmonitor.action.ConfigAction" method="show">
 			<result name="show">/updateInstance.jsp</result>
@@ -50,7 +50,7 @@
 
 	<package name="job" extends="struts-default" namespace="/job">
 		<action name="list" class="com.easeye.quartz.quartzmonitor.action.JobAction"	method="list">
-			<result name="list">/job_list.jsp</result>
+			<result name="list">/joblist.jsp</result>
 		</action>
 		<action name="start" class="com.easeye.quartz.quartzmonitor.action.JobAction" method="start">
 		</action>

@@ -1,21 +1,11 @@
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
-<%
-String path = request.getContextPath();
-String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
-%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<%@ include file="head.jsp"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 	<head>
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 		<title>首页</title>
-		<link rel="stylesheet" href="css/960.css" type="text/css" media="screen" charset="utf-8" />
-		<link rel="stylesheet" href="css/template.css" type="text/css" media="screen" charset="utf-8" />
-		<link rel="stylesheet" href="css/colour.css" type="text/css" media="screen" charset="utf-8" />
-		<!--[if IE]><![if gte IE 6]><![endif]-->
-		<script src="js/glow/1.7.0/core/core.js" type="text/javascript"></script>
-		<script src="js/glow/1.7.0/widgets/widgets.js" type="text/javascript"></script>
-		<link href="js/glow/1.7.0/widgets/widgets.css" type="text/css" rel="stylesheet" />
+		<%@ include file="include.jsp"%>
 		<script type="text/javascript">
 			glow.ready(function(){
 				new glow.widgets.Sortable(
@@ -30,16 +20,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		</script>
 	</head>
 	<body>
-
-		<h1 id="head">调度管理</h1>
-		
-		<ul id="navigation">
-			<li><span class="active">首页</span></li>
-			<li><a href="connectlist.html">连接管理</a></li>
-			<li><a href="schedulerlist.html">调度器管理</a></li>
-			<li><a href="joblist.html">任务管理</a></li>
-		</ul>
-
+			
+		<%@ include file="toolbar.jsp"%>
 			<div id="content" class="container_16 clearfix">
 				<div class="grid_5">
 					<div class="box">

@@ -1,20 +1,12 @@
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
-<%
-String path = request.getContextPath();
-String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
-%>
+<%@ include file="head.jsp"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 <title>作业管理</title>
-<link rel="stylesheet" href="css/960.css" type="text/css" media="screen"
-	charset="utf-8" />
-<link rel="stylesheet" href="css/template.css" type="text/css"
-	media="screen" charset="utf-8" />
-<link rel="stylesheet" href="css/colour.css" type="text/css"
-	media="screen" charset="utf-8" />
+	<%@ include file="include.jsp"%>
 <style>
 .grid_5 p input+input {
 	margin-left: 10px;
@@ -22,13 +14,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 </style>
 </head>
 <body>
-	<h1 id="head">作业管理</h1>
-	<ul id="navigation">
-		<li><a href="index.html">首页</a></li>
-		<li><span class="connectlist.html">连接管理</span></li>
-		<li><a href="schedulerlist.html">调度器管理</a></li>
-		<li><span class="active">任务管理</span></li>
-	</ul>
+			
+	<%@ include file="toolbar.jsp"%>
 
 	<div id="content" class="container_16 clearfix">
 		<div class="grid_4">
@@ -79,6 +66,30 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<th>操作</th>
 					</tr>
 				</thead>
+				<tbody>
+					<tr>
+						<td target="jobName">${job.jobName }</td>
+						<td target="group">${job.group }</td>
+						<td><fmt:formatDate value='${job.nextFireTime}' type='date' pattern="yyyy-MM-dd HH:mm:ss"/></td>
+						<td align='middle'><a href="<%=path%>/trigger/list?job.jobName=${job.jobName}&job.group=${job.group }&job.schedulerName=${job.schedulerName }&job.quartzConfigId=${job.quartzConfigId}" target="dialog" title="Trigger列表" mask="true" rel="triggerList" width="800">${job.numTriggers }</a></td>
+						<td target="jobClass">${job.jobClass }</td>
+						<td>${job.durability }</td>
+						<td>${job.schedulerName }@${job.scheduler.config.host }:${job.scheduler.config.port }</td>
+						<td align="middle">
+						<a href="<%=path%>/job/start.action?job.quartzConfigId=${job.quartzConfigId}&job.schedulerName=${job.schedulerName }&job.jobName=${job.jobName}&job.group=${job.group }" target="ajaxTodo">执行</a>
+						<c:if test="${job.state == 'NORMAL' }">
+		    				 <a href="<%=path%>/job/pause.action?job.quartzConfigId=${job.quartzConfigId}&job.schedulerName=${job.schedulerName }&job.jobName=${job.jobName}&job.group=${job.group }" target="ajaxTodo">暂停</a>
+						</c:if>
+<%-- 						<c:if test="${job.state == 'COMPLETE' }"> --%>
+<%-- 						</c:if> --%>
+						<c:if test="${job.state == 'PAUSED' }">
+						      <a href="<%=path%>/job/resume.action?job.quartzConfigId=${job.quartzConfigId}&job.schedulerName=${job.schedulerName }&job.jobName=${job.jobName}&job.group=${job.group }" target="ajaxTodo">恢复</a>
+						</c:if>
+						</td>
+						<td target="description">${job.description }</td>
+						<td><a href="#" class="edit">Edit</a><a href="#" class="delete">Delete</a></td>
+				</tr>
+				</tbody>
 				<tfoot>
 					<tr>
 						<td colspan="8" class="pagination"><span
@@ -87,30 +98,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 							<a href="#" class="curved">10 million</a></td>
 					</tr>
 				</tfoot>
-				<tbody>
-					<tr>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td><a href="#" class="edit">Edit</a><a href="#"
-							class="delete">Delete</a></td>
-					</tr>
-					<tr class="alt">
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td><a href="#" class="edit">Edit</a><a href="#"
-							class="delete">Delete</a></td>
-					</tr>
-				</tbody>
 			</table>
 		</div>
 	</div>
