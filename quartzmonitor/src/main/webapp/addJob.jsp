@@ -9,7 +9,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript">
 
 jQuery(document).ready(function(){
-	var selecttext = $("select[name='job.uuid'] option:selected").text();
+	var selecttext = $("select[name='job.quartzConfigId'] option:selected").text();
 	$("input[name='job.schedulerName']").val(selecttext);
 });
 
@@ -74,9 +74,9 @@ function setJobSchedulerName(){
 			</div-->
 			<div class="unit">
 				<label>所属Schedule：</label>
-				<select name="job.uuid" class="required" onchange="setJobSchedulerName();">
+				<select name="job.quartzConfigId" class="required" onchange="setJobSchedulerName();">
 					<s:iterator value="schedulerList" id="sch">
-				   		<option value='<s:property value="#sch.quartzInstanceUUID"/>'><s:property value="#sch.name"/></option>
+				   		<option value='<s:property value="#sch.config.configId"/>'><s:property value="#sch.name"/>@<s:property value="#sch.config.host"/>:<s:property value="#sch.config.port"/></option>
 					</s:iterator>
 				</select>
 				

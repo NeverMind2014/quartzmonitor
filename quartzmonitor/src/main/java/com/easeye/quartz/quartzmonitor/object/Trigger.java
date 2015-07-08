@@ -2,6 +2,14 @@ package com.easeye.quartz.quartzmonitor.object;
 
 import java.util.Date;
 
+
+/**
+ * Trigger
+ * @author zhenxing.li
+ * @date 2015年7月8日 上午10:51:23
+ * triggerName triggerGroupName schedulerName唯一标示一个trigger
+ */
+
 public class Trigger {
 	
 	public static final String STATE_GET_ERROR = "Q_ERROR";

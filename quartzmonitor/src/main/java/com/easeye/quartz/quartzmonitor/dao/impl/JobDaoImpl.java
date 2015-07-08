@@ -66,7 +66,7 @@ public class JobDaoImpl extends CommonDao implements JobDao {
 
 	@Override
 	public List<Job> getALLJobs(String schedulerId) throws DBException, SQLException {
-		String sql = "SELECT jobId AS uuid, quartzConfigId, jobName, groupName AS 'group', jobClass, jobName, description, jobDataMap AS jobDataMapJson FROM t_job where schedulerid = ?";
+		String sql = "SELECT jobId AS uuid, quartzConfigId, jobName, groupName AS 'group', jobClass, jobName, description, jobDataMap AS jobDataMapJson FROM t_job where quartzConfigId = ?";
 		
 		JdbcUtil.operaterDebugSql(sql, schedulerId);
 		

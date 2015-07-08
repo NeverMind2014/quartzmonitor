@@ -40,6 +40,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<th width="60" orderField="num" class="desc">所属组</th>
 				<th width="100">下一次触发时间</th>
 				<th width="10">Triggers</th>
+				<th width="100">jobClass</th>
 				<th width="10">Durable</th>
 				<th width="80">所属Scheduler</th>
 				<th width="100" align="middle">操作</th>
@@ -48,28 +49,29 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		</thead>
 		<tbody>
 		<s:iterator value="jobList" id="job">
-			<tr target="sid_user" rel="${job.uuid }">
-				<td>${job.jobName }</td>
-				<td>${job.group }</td>
+			<tr target="sid_user" rel="${job.quartzConfigId}@${job.jobName }@${job.group }@${job.schedulerName }@${job.jobClass }@${job.description }">
+				<td target="jobName">${job.jobName }</td>
+				<td target="group">${job.group }</td>
 				<td><s:date name="#job.nextFireTime"   format="yyyy-MM-dd HH:mm:ss"/></td>
-				<td align='middle'><a href="<%=request.getContextPath()%>/trigger/list?jobId=${job.uuid}&triggeruuid=${job.quartzInstanceId}" target="dialog" title="Trigger列表" mask="true" rel="triggerList" width="800">${job.numTriggers }</a></td>
+				<td align='middle'><a href="<%=request.getContextPath()%>/trigger/list?job.jobName=${job.jobName}&job.group=${job.group }&job.schedulerName=${job.schedulerName }&job.quartzConfigId=${job.quartzConfigId}" target="dialog" title="Trigger列表" mask="true" rel="triggerList" width="800">${job.numTriggers }</a></td>
+				<td target="jobClass">${job.jobClass }</td>
 				<td>${job.durability }</td>
-				<td>${job.schedulerName }</td>
+				<td target="schedulerName">${job.schedulerName }@${job.scheduler.config.host }:${job.scheduler.config.port }</td>
 				<td align="middle">
-				<a href="<%=request.getContextPath()%>/job/start.action?uuid=${job.quartzInstanceId}&jobuuid=${job.uuid}" target="ajaxTodo">执行</a>
+				<a href="<%=request.getContextPath()%>/job/start.action?job.quartzConfigId=${job.quartzConfigId}&job.schedulerName=${job.schedulerName }&job.jobName=${job.jobName}&job.group=${job.group }" target="ajaxTodo">执行</a>
 				<s:if test="#job.state == 'NORMAL'">
-    				 <a href="<%=request.getContextPath()%>/job/pause.action?uuid=${job.quartzInstanceId}&jobuuid=${job.uuid}" target="ajaxTodo">暂停</a>
+    				 <a href="<%=request.getContextPath()%>/job/pause.action?job.quartzConfigId=${job.quartzConfigId}&job.schedulerName=${job.schedulerName }&job.jobName=${job.jobName}&job.group=${job.group }" target="ajaxTodo">暂停</a>
 				</s:if>
 				<s:elseif test="#job.state == 'COMPLETE'">
 				</s:elseif>
 				<s:elseif test="#job.state == 'PAUSED'">
-				      <a href="<%=request.getContextPath()%>/job/resume.action?uuid=${job.quartzInstanceId}&jobuuid=${job.uuid}" target="ajaxTodo">恢复</a>
+				      <a href="<%=request.getContextPath()%>/job/resume.action?job.quartzConfigId=${job.quartzConfigId}&job.schedulerName=${job.schedulerName }&job.jobName=${job.jobName}&job.group=${job.group }" target="ajaxTodo">恢复</a>
 				</s:elseif>
 				<s:else>
       				未知
 				</s:else>
 				</td>
-				<td>${job.description }</td>
+				<td target="description">${job.description }</td>
 			</tr>
 			</s:iterator>
 		</tbody>

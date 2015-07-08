@@ -62,7 +62,7 @@ public class QuartzJMXAdapterImpl implements QuartzJMXAdapter {
 				job.setShouldRecover(((Boolean) JMXUtil.convertToType(compositeDataSupport,"shouldRecover")).booleanValue());
 				job.setGroup((String) JMXUtil.convertToType(compositeDataSupport, "group"));
 				job.setJobClass((String) JMXUtil.convertToType(compositeDataSupport, "jobClass"));
-
+				job.setScheduler(scheduler);
 				// get Next Fire Time for job
 				List<Trigger> triggers = this.getTriggersForJob(client, scheduler,
 						job.getJobName(), job.getGroup());
@@ -92,7 +92,7 @@ public class QuartzJMXAdapterImpl implements QuartzJMXAdapter {
 	}
 
 	@Override
-	public Scheduler getSchedulerById(QuartzClient client, String scheduleID)
+	public Scheduler getSchedulerById(QuartzClient client, String remoteInstanceId)
 			throws Exception {
 		
 		List<Scheduler> list = client.getSchedulerList();
@@ -101,72 +101,13 @@ public class QuartzJMXAdapterImpl implements QuartzJMXAdapter {
 	         for (int i = 0; i < list.size(); i++)
 	         {
 	            Scheduler s = (Scheduler) list.get(i);
-	            if (s.getRemoteInstanceId().equals(scheduleID))
+	            if (s.getRemoteInstanceId().equals(remoteInstanceId))
 	            {
 	               return s;
 	            }
 	         }
 	      }
 		return null;
-	}
-
-	@Override
-	public List<Trigger> getTriggersForJob(QuartzClient client, Scheduler scheduler,
-			String jobName, String groupName) throws Exception {
-		
-	      List<Trigger> triggers = null;
-
-	      JMXInput jmxInput = new JMXInput(client, new String[]{String.class.getName(), String.class.getName()}, "getTriggersOfJob", new Object[]{jobName, groupName}, scheduler.getObjectName());
-	      @SuppressWarnings("unchecked")
-		 List<CompositeDataSupport> list = (List<CompositeDataSupport>) JMXUtil.callJMXOperation(jmxInput);
-	      if (list != null && list.size() > 0)
-	      {
-	    	 log.info("-------"+jobName+" trigger size:"+list.size());
-	         triggers = new ArrayList<Trigger>();
-	         for (int i = 0; i < list.size(); i++)
-	         {
-	            CompositeDataSupport compositeDataSupport = (CompositeDataSupport) list.get(i);
-	            Trigger trigger = new Trigger();
-	            trigger.setCalendarName((String) JMXUtil.convertToType(compositeDataSupport, "calendarName"));
-	            log.info("-------"+jobName+" trigger's calendar name:"+trigger.getCalendarName());
-	            trigger.setDescription((String) JMXUtil.convertToType(compositeDataSupport, "description"));
-	            trigger.setEndTime((Date) JMXUtil.convertToType(compositeDataSupport, "endTime"));
-	            trigger.setFinalFireTime((Date) JMXUtil.convertToType(compositeDataSupport, "finalFireTime"));
-	            trigger.setFireInstanceId((String) JMXUtil.convertToType(compositeDataSupport, "fireInstanceId"));
-	            trigger.setGroup((String) JMXUtil.convertToType(compositeDataSupport, "group"));
-	            trigger.setJobGroup((String) JMXUtil.convertToType(compositeDataSupport, "jobGroup"));
-	            trigger.setJobName((String) JMXUtil.convertToType(compositeDataSupport, "jobName"));
-	            log.info("-------"+jobName+" trigger's job name:"+trigger.getJobName());
-	            trigger.setMisfireInstruction(((Integer) JMXUtil.convertToType(compositeDataSupport, "misfireInstruction")).intValue());
-	            trigger.setName((String) JMXUtil.convertToType(compositeDataSupport, "name"));
-	            log.info("-------"+jobName+" trigger's  name:"+trigger.getName());
-	            trigger.setNextFireTime((Date) JMXUtil.convertToType(compositeDataSupport, "nextFireTime"));
-	            log.info("-------"+jobName+" trigger's  nextFireTime:"+trigger.getNextFireTime());
-	            trigger.setPreviousFireTime((Date) JMXUtil.convertToType(compositeDataSupport, "previousFireTime"));
-	            trigger.setPriority(((Integer) JMXUtil.convertToType(compositeDataSupport, "priority")).intValue());
-	            trigger.setStartTime((Date) JMXUtil.convertToType(compositeDataSupport, "startTime"));
-
-	            
-	            try 
-	            {
-	               JMXInput stateJmxInput = new JMXInput(client, new String[]{String.class.getName(), String.class.getName()}, "getTriggerState", new Object[]{trigger.getName(), trigger.getGroup()}, scheduler.getObjectName());
-	               String state = (String) JMXUtil.callJMXOperation(stateJmxInput);
-	               trigger.setSTriggerState(state);
-	            }
-	            catch (Throwable tt)
-	            {
-	               trigger.setSTriggerState(Trigger.STATE_GET_ERROR);
-	            }
-
-	            //删除group为"now"的trigger
-	            if(trigger.getGroup().equals("now")){
-	            	deleteTrigger(client, scheduler, trigger);
-	            }else{
-	            	 triggers.add(trigger);
-	            }
-	         }
-	      }
-	      return triggers;
 	}
 
 	@Override
@@ -237,45 +178,6 @@ public class QuartzJMXAdapterImpl implements QuartzJMXAdapter {
 	}
 
 	@Override
-	public void deleteTrigger(QuartzClient client, Scheduler scheduler, Trigger trigger)
-			throws Exception {
-
-	    JMXInput jmxInput1 = new JMXInput(client, new String[]{"java.lang.String","java.lang.String"}, "unscheduleJob", new Object[]{trigger.getName(),trigger.getGroup()}, scheduler.getObjectName());
-	    JMXUtil.callJMXOperation(jmxInput1);
-		
-	}
-	
-	@Override
-	public String getTriggerState(QuartzClient client, Scheduler scheduler, Trigger trigger)
-			throws Exception {
-	    JMXInput jmxInput = new JMXInput(client, new String[]{"java.lang.String","java.lang.String"}, "getTriggerState", new Object[]{trigger.getName(),trigger.getGroup()}, scheduler.getObjectName());
-	    String state = (String)JMXUtil.callJMXOperation(jmxInput);
-	    return state;
-	}
-
-	@Override
-	public void addTriggerForJob(QuartzClient client, Scheduler scheduler, Job job,
-			Map<String,Object> triggerMap) throws Exception {
-		//Map<String,Object> jobMap = QuartzUtil.convertJob2Map(job);
-		
-		/**
-		jobMap.put("name", jobMap.get("name")+"Test");
-		
-		triggerMap.put("jobName", jobMap.get("name"));
-		//这种方法会删除job原有的trigger
-		JMXInput jmxInput = new JMXInput(client, new String[]{"java.util.Map","java.util.Map"}, "scheduleBasicJob", new Object[]{jobMap,triggerMap}, scheduler.getObjectName());
-	    JMXUtil.callJMXOperation(jmxInput);
-	    **/
-		//必须指定trigger的class，也就是必须有存在的trigger
-		
-		//JMXInput jmxInput = new JMXInput(client, new String[]{"java.util.Map","java.util.Map"}, "scheduleJob", new Object[]{jobMap,triggerMap}, scheduler.getObjectName());
-		JMXInput jmxInput = new JMXInput(client, new String[]{"java.lang.String","java.lang.String","java.util.Map"}, "scheduleJob", new Object[]{job.getJobName(),job.getGroup(),triggerMap}, scheduler.getObjectName());
-	    JMXUtil.callJMXOperation(jmxInput);
-//		JMXInput jmxInput = new JMXInput(client, new String[]{"java.util.Map"}, "newTrigger", new Object[]{triggerMap}, scheduler.getObjectName());
-//	    JMXUtil.callJMXOperation(jmxInput);
-	}
-
-	@Override
 	public void pauseJob(QuartzClient client, Scheduler scheduler, Job job)
 			throws Exception {
 			JMXInput jmxInput = new JMXInput(client, new String[]{"java.lang.String","java.lang.String"}, "pauseJob", new Object[]{job.getJobName(),job.getGroup()}, scheduler.getObjectName());
@@ -314,4 +216,107 @@ public class QuartzJMXAdapterImpl implements QuartzJMXAdapter {
 		JMXInput jmxInput = new JMXInput(client, new String[]{"java.lang.String","java.lang.String"}, "resumeTrigger", new Object[]{trigger.getName(), trigger.getGroup()}, scheduler.getObjectName());
 	    JMXUtil.callJMXOperation(jmxInput);
 	}
+	
+
+
+    @Override
+    public void deleteTrigger(QuartzClient client, Scheduler scheduler, Trigger trigger)
+            throws Exception {
+
+        JMXInput jmxInput1 = new JMXInput(client, new String[]{"java.lang.String","java.lang.String"}, "unscheduleJob", new Object[]{trigger.getName(),trigger.getGroup()}, scheduler.getObjectName());
+        JMXUtil.callJMXOperation(jmxInput1);
+        
+    }
+    
+    @Override
+    public String getTriggerState(QuartzClient client, Scheduler scheduler, Trigger trigger)
+            throws Exception {
+        JMXInput jmxInput = new JMXInput(client, new String[]{"java.lang.String","java.lang.String"}, "getTriggerState", new Object[]{trigger.getName(),trigger.getGroup()}, scheduler.getObjectName());
+        String state = (String)JMXUtil.callJMXOperation(jmxInput);
+        return state;
+    }
+
+    @Override
+    public void addTriggerForJob(QuartzClient client, Scheduler scheduler, Job job,
+            Map<String,Object> triggerMap) throws Exception {
+        //Map<String,Object> jobMap = QuartzUtil.convertJob2Map(job);
+        
+        /**
+        jobMap.put("name", jobMap.get("name")+"Test");
+        
+        triggerMap.put("jobName", jobMap.get("name"));
+        //这种方法会删除job原有的trigger
+        JMXInput jmxInput = new JMXInput(client, new String[]{"java.util.Map","java.util.Map"}, "scheduleBasicJob", new Object[]{jobMap,triggerMap}, scheduler.getObjectName());
+        JMXUtil.callJMXOperation(jmxInput);
+        **/
+        //必须指定trigger的class，也就是必须有存在的trigger
+        
+        //JMXInput jmxInput = new JMXInput(client, new String[]{"java.util.Map","java.util.Map"}, "scheduleJob", new Object[]{jobMap,triggerMap}, scheduler.getObjectName());
+        JMXInput jmxInput = new JMXInput(client, new String[]{"java.lang.String","java.lang.String","java.util.Map"}, "scheduleJob", new Object[]{job.getJobName(),job.getGroup(),triggerMap}, scheduler.getObjectName());
+        JMXUtil.callJMXOperation(jmxInput);
+//      JMXInput jmxInput = new JMXInput(client, new String[]{"java.util.Map"}, "newTrigger", new Object[]{triggerMap}, scheduler.getObjectName());
+//      JMXUtil.callJMXOperation(jmxInput);
+    }
+
+    /* 
+     * 根据jobName groupName schedulerName 获取triggers
+     */
+    @Override
+    public List<Trigger> getTriggersForJob(QuartzClient client, Scheduler scheduler,
+            String jobName, String groupName) throws Exception {
+        
+          List<Trigger> triggers = null;
+
+          JMXInput jmxInput = new JMXInput(client, new String[]{String.class.getName(), String.class.getName()}, "getTriggersOfJob", new Object[]{jobName, groupName}, scheduler.getObjectName());
+          @SuppressWarnings("unchecked")
+         List<CompositeDataSupport> list = (List<CompositeDataSupport>) JMXUtil.callJMXOperation(jmxInput);
+          if (list != null && list.size() > 0)
+          {
+             log.info("-------"+jobName+" trigger size:"+list.size());
+             triggers = new ArrayList<Trigger>();
+             for (int i = 0; i < list.size(); i++)
+             {
+                CompositeDataSupport compositeDataSupport = (CompositeDataSupport) list.get(i);
+                Trigger trigger = new Trigger();
+                trigger.setCalendarName((String) JMXUtil.convertToType(compositeDataSupport, "calendarName"));
+                log.info("-------"+jobName+" trigger's calendar name:"+trigger.getCalendarName());
+                trigger.setDescription((String) JMXUtil.convertToType(compositeDataSupport, "description"));
+                trigger.setEndTime((Date) JMXUtil.convertToType(compositeDataSupport, "endTime"));
+                trigger.setFinalFireTime((Date) JMXUtil.convertToType(compositeDataSupport, "finalFireTime"));
+                trigger.setFireInstanceId((String) JMXUtil.convertToType(compositeDataSupport, "fireInstanceId"));
+                trigger.setGroup((String) JMXUtil.convertToType(compositeDataSupport, "group"));
+                trigger.setJobGroup((String) JMXUtil.convertToType(compositeDataSupport, "jobGroup"));
+                trigger.setJobName((String) JMXUtil.convertToType(compositeDataSupport, "jobName"));
+                log.info("-------"+jobName+" trigger's job name:"+trigger.getJobName());
+                trigger.setMisfireInstruction(((Integer) JMXUtil.convertToType(compositeDataSupport, "misfireInstruction")).intValue());
+                trigger.setName((String) JMXUtil.convertToType(compositeDataSupport, "name"));
+                log.info("-------"+jobName+" trigger's  name:"+trigger.getName());
+                trigger.setNextFireTime((Date) JMXUtil.convertToType(compositeDataSupport, "nextFireTime"));
+                log.info("-------"+jobName+" trigger's  nextFireTime:"+trigger.getNextFireTime());
+                trigger.setPreviousFireTime((Date) JMXUtil.convertToType(compositeDataSupport, "previousFireTime"));
+                trigger.setPriority(((Integer) JMXUtil.convertToType(compositeDataSupport, "priority")).intValue());
+                trigger.setStartTime((Date) JMXUtil.convertToType(compositeDataSupport, "startTime"));
+
+                
+                try 
+                {
+                   JMXInput stateJmxInput = new JMXInput(client, new String[]{String.class.getName(), String.class.getName()}, "getTriggerState", new Object[]{trigger.getName(), trigger.getGroup()}, scheduler.getObjectName());
+                   String state = (String) JMXUtil.callJMXOperation(stateJmxInput);
+                   trigger.setSTriggerState(state);
+                }
+                catch (Throwable tt)
+                {
+                   trigger.setSTriggerState(Trigger.STATE_GET_ERROR);
+                }
+
+                //删除group为"now"的trigger
+                if(trigger.getGroup().equals("now")){
+                    deleteTrigger(client, scheduler, trigger);
+                }else{
+                     triggers.add(trigger);
+                }
+             }
+          }
+          return triggers;
+    }
 }

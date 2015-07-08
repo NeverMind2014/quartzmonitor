@@ -10,7 +10,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<div class="pageFormContent" layoutH="56">
 			<div class="unit">
 				<label>job名称：</label>
-				<input type="hidden" name="jobuuid" value="${job.uuid }"/>
+				<input type="hidden" name="job.quartzConfigId" value="${job.quartzConfigId }"/>
 				<input name="job.jobName" class="required" type="text" value="${job.jobName }" readonly="readonly" />
 			</div>
 			<div class="unit">

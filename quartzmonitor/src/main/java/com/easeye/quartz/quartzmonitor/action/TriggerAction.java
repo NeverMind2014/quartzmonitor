@@ -31,7 +31,14 @@ public class TriggerAction extends ActionSupport {
 	private String uuid;  //trigger的uuid
 	private String jobId;
 	private String triggeruuid;  //quartzInstanceId的uuid
+	private String schedulerConfigId;//根据configId 可以拿到QuartzClient对象
+	private String schedulerName;//根据QuartzClient对象的getSchedulerByName方法可以获取到scheduler对象
+	private String jobName;//根据scheduler对象和jobName&groupName可以拿到远端的job对象
+	private String jobGroupName;
+	private String triggerName;
+	private String triggerGroupName;
 	private  List<Trigger> triggerList = new ArrayList<Trigger>();
+	private Job job;
 
 	private TriggerInput triggerInput;
 	
@@ -44,43 +51,21 @@ public class TriggerAction extends ActionSupport {
 	}
 	
 	private void addTrigger(Map<String, Object> triggerMap, Job job, String oldUuid) throws Exception {
-	    String uuid = StringUtils.isBlank(oldUuid)?Tools.generateUUID():oldUuid;
-        QuartzClient instance = Tools.getQuartzClient(job.getQuartzConfigId());
-		instance.getJmxAdapter().addTriggerForJob(instance, instance.getSchedulerByName(job.getSchedulerName()), job,triggerMap);
-		Trigger trigger = new Trigger();
-		trigger.setName(triggerMap.get("name").toString());
-		trigger.setGroup(triggerMap.get("group").toString());
-		trigger.setDescription(triggerMap.get("description").toString());
-		trigger.setJobId(job.getUuid());
-		trigger.setCronExpression(triggerMap.get("cronExpression").toString());
-		trigger.setUuid(uuid);
-		TriggerContainer.addTrigger(uuid, trigger);;
+        QuartzClient client = Tools.getQuartzClient(job.getQuartzConfigId());
+        client.getJmxAdapter().addTriggerForJob(client, client.getSchedulerByName(job.getSchedulerName()), job,triggerMap);
 	}
 	
 	public String list() throws Exception {
 
-		QuartzClient instance = Tools.getQuartzClient(triggeruuid);
-		List<Scheduler> schedulers = instance.getSchedulerList();
-		log.info(" schedulers list size:"+schedulers.size());
+		QuartzClient client = Tools.getQuartzClient(job.getQuartzConfigId());
+		Scheduler scheduler = client.getSchedulerByName(job.getSchedulerName());
 
-		Job job = JobContainer.getJobById(jobId);
-		Scheduler scheduler = instance.getSchedulerByName(job.getSchedulerName());
-
-		List<Trigger> temp = instance.getJmxAdapter().getTriggersForJob(instance, scheduler,job.getJobName(), job.getGroup());
+		List<Trigger> temp = client.getJmxAdapter().getTriggersForJob(client, scheduler,job.getJobName(), job.getGroup());
 		if(temp == null || temp.size() == 0){
-			return "list";
+	 		return "list";
 		}
-		
-		for (Trigger trigger : temp) {
-		    //id不应该使用随机的uuid
-            String id = Tools.generateUUID();
-			trigger.setUuid(id);
-			trigger.setJobId(jobId);
-			TriggerContainer.addTrigger(trigger.getUuid(), trigger);
-			triggerList.add(trigger);
-			System.out.println(trigger.getSTriggerState());
-		}
-		log.info("job[" + job.getJobName() + "]'s trigger size:" + triggerList.size());
+		triggerList.addAll(temp);
+		log.info("job[" + jobName + "]'s trigger size:" + triggerList.size());
 		return "list";
 	}
 
@@ -98,11 +83,14 @@ public class TriggerAction extends ActionSupport {
 		triggerMap.put("description", triggerInput.getDescription());
 		triggerMap.put("cronExpression", triggerInput.getCron());
 		triggerMap.put("triggerClass", "org.quartz.impl.triggers.CronTriggerImpl");
-		Job job = JobContainer.getJobById(jobId);
-		triggerMap.put("jobName", job.getJobName());
-		triggerMap.put("jobGroup", job.getGroup());
-		
-		
+//		Job job = JobContainer.getJobById(jobId);
+		triggerMap.put("jobName", jobName);
+		triggerMap.put("jobGroup", jobGroupName);
+		Job job = new Job();
+		job.setJobName(jobName);
+		job.setGroup(jobGroupName);
+		job.setSchedulerName(schedulerName);
+		job.setQuartzConfigId(schedulerConfigId);
 		addTrigger(triggerMap, job,null);
 		
 		log.info("add trigger for job:"+job.getJobName());
@@ -135,11 +123,11 @@ public class TriggerAction extends ActionSupport {
 	}
 
 	public String pause() throws Exception {
-		QuartzClient instance = Tools.getQuartzClient(triggeruuid);
+		QuartzClient client = Tools.getQuartzClient(triggeruuid);
 		
 		Trigger trigger = TriggerContainer.getTriggerById(uuid);
 		Job job = JobContainer.getJobById(trigger.getJobId());
-		instance.getJmxAdapter().pauseTrigger(instance, instance.getSchedulerByName(job.getSchedulerName()), trigger);
+		client.getJmxAdapter().pauseTrigger(client, client.getSchedulerByName(job.getSchedulerName()), trigger);
 		
 		Result result = new Result();
 		result.setMessage("trigger已暂停");
@@ -254,4 +242,59 @@ public class TriggerAction extends ActionSupport {
 		this.triggerInput = triggerInput;
 	}
 
+    public String getSchedulerConfigId() {
+        return schedulerConfigId;
+    }
+
+    public void setSchedulerConfigId(String schedulerConfigId) {
+        this.schedulerConfigId = schedulerConfigId;
+    }
+
+    public String getSchedulerName() {
+        return schedulerName;
+    }
+
+    public void setSchedulerName(String schedulerName) {
+        this.schedulerName = schedulerName;
+    }
+
+    public String getJobName() {
+        return jobName;
+    }
+
+    public void setJobName(String jobName) {
+        this.jobName = jobName;
+    }
+
+    public String getJobGroupName() {
+        return jobGroupName;
+    }
+
+    public void setJobGroupName(String jobGroupName) {
+        this.jobGroupName = jobGroupName;
+    }
+
+    public String getTriggerName() {
+        return triggerName;
+    }
+
+    public void setTriggerName(String triggerName) {
+        this.triggerName = triggerName;
+    }
+
+    public String getTriggerGroupName() {
+        return triggerGroupName;
+    }
+
+    public void setTriggerGroupName(String triggerGroupName) {
+        this.triggerGroupName = triggerGroupName;
+    }
+
+    public Job getJob() {
+        return job;
+    }
+
+    public void setJob(Job job) {
+        this.job = job;
+    }
 }

@@ -19,9 +19,9 @@ function closeTriggerList(){
 <div class="pageContent">
 	<div class="panelBar">
 		<ul class="toolBar">
-			<li><a class="add" href="trigger/addShow?jobId=${jobId }&triggeruuid=${triggeruuid}" target="navTab" rel="addTrigger"><span>添加</span></a></li>
+			<li><a class="add" href="trigger/addShow?job.jobName=${jobName }&job.group=${jobGroupName}&job.quartzConfigId=${schedulerConfigId}&job.schedulerName=${schedulerName}" target="navTab" rel="addTrigger"><span>添加</span></a></li>
 			<li><a class="delete"  href="<%=request.getContextPath()%>/trigger/delete.action?uuid={sid_user}&triggeruuid=${triggeruuid}" callback="dialogAjax" target="ajaxTodo" title="确定要删除吗?" fresh="true"><span>删除</span></a></li>
-			<li><a class="edit" href="<%=request.getContextPath()%>/trigger/edit.action?uuid={sid_user}&triggeruuid=${triggeruuid}" target="dialog" warn="请选择一记录"><span>修改</span></a></li>
+			<li><a class="edit" href="<%=request.getContextPath()%>/trigger/edit.action?triggerName={triggerName}&triggerGroupName={triggerGroupName}&schedulerName=${schedulerName}" target="dialog" warn="请选择一记录"><span>修改</span></a></li>
 		</ul>
 	</div>
 	<input type="hidden" name="jobId" value="${jobId }"/>
@@ -40,8 +40,8 @@ function closeTriggerList(){
 		<tbody>
 		<s:iterator value="triggerList" id="trigger">
 			<tr target="sid_user" rel="${trigger.uuid }">
-				<td align="middle">${trigger.name }</td>
-				<td align="middle">${trigger.group }</td>
+				<td target="triggerName" align="middle">${trigger.name }</td>
+				<td target="triggerGroupName" align="middle">${trigger.group }</td>
 				<td><s:date name="#trigger.previousFireTime"   format="yyyy-MM-dd HH:mm:ss"/></td>
 				<td><s:date name="#trigger.nextFireTime"   format="yyyy-MM-dd HH:mm:ss"/></td>
 				<td><s:date name="#trigger.startTime"   format="yyyy-MM-dd HH:mm:ss"/></td>

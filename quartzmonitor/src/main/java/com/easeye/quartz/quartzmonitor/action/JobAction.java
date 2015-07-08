@@ -126,8 +126,8 @@ public class JobAction extends ActionSupport {
 	}
 	
 	public String list() throws Exception {
-		Map<String, QuartzClient> quartzInstanceMap = QuartzClientContainer.getQuartzClientMap();
-		for (Map.Entry<String, QuartzClient> entry : quartzInstanceMap.entrySet()) {
+		Map<String, QuartzClient> quartzClientMap = QuartzClientContainer.getQuartzClientMap();
+		for (Map.Entry<String, QuartzClient> entry : quartzClientMap.entrySet()) {
 			QuartzClient client = entry.getValue();
 			List<Scheduler> schedulers = client.getSchedulerList();
 			log.info(" schedulers list size:" + schedulers.size());
@@ -142,16 +142,7 @@ public class JobAction extends ActionSupport {
                         log.info(e.getMessage(),e);
                     }
 					if(CollectionUtils.isNotEmpty(temp)){
-					    List<Job> localJob = jobService.getALLJobs(scheduler.getConfig().getConfigId());
-					    for (Job job : temp) {
-					        //此处的id策略需优化 一直随机的uuid 随着方法调用的增加 会导致缓存map放置过多job 而且不可重用 又不会释放
-					        //
-					        String id = Tools.generateUUID();
-					        job.setUuid(id);
-//					        scheduler.getHost()+scheduler.getPort()+scheduler.getObjectName()+job.getJobName();
-					        JobContainer.addJob(job.getUuid(), job);
-					        jobList.add(job);
-					    }
+					    jobList.addAll(temp);
 					}
 				}
 			}
@@ -170,9 +161,8 @@ public class JobAction extends ActionSupport {
 
 	public String start() throws Exception {
 
-		QuartzClient client = Tools.getQuartzClient(uuid);
+		QuartzClient client = Tools.getQuartzClient(job.getQuartzConfigId());
 		
-		Job job = JobContainer.getJobById(jobuuid);
 		client.getJmxAdapter().startJobNow(client, client.getSchedulerByName(job.getSchedulerName()), job);
 
 		Result result = new Result();
@@ -185,10 +175,8 @@ public class JobAction extends ActionSupport {
 
 	public String delete() throws Exception {
 
-//		jobService.deleteJob(jobuuid);
-		Job job = JobContainer.removeJobById(jobuuid);
+	    propJob();
 		QuartzClient client = Tools.getQuartzClient(job.getQuartzConfigId());
-//		JobContainer.removeJobById(jobuuid);
 		log.info("delete a quartz job!");
 		client.getJmxAdapter().deleteJob(client, client.getSchedulerByName(job.getSchedulerName()), job);
 		Result result = new Result();
@@ -199,9 +187,8 @@ public class JobAction extends ActionSupport {
 
 	public String pause() throws Exception {
 
-		QuartzClient client = Tools.getQuartzClient(uuid);
+		QuartzClient client = Tools.getQuartzClient(job.getQuartzConfigId());
 
-		Job job = JobContainer.getJobById(jobuuid);
 		log.info("pause a quartz job!");
 		client.getJmxAdapter().pauseJob(client, client.getSchedulerByName(job.getSchedulerName()), job);
 		Result result = new Result();
@@ -213,9 +200,8 @@ public class JobAction extends ActionSupport {
 
 	public String resume() throws Exception {
 
-		QuartzClient client = Tools.getQuartzClient(uuid);
+		QuartzClient client = Tools.getQuartzClient(job.getQuartzConfigId());
 
-		Job job = JobContainer.getJobById(jobuuid);
 		log.info("resume a quartz job!");
 		client.getJmxAdapter().resumeJob(client, client.getSchedulerByName(job.getSchedulerName()), job);
 
@@ -227,16 +213,6 @@ public class JobAction extends ActionSupport {
 	}
 
 	public String show() throws Exception {
-
-//		Map<String, QuartzInstance> quartzInstanceMap = QuartzInstanceContainer.getQuartzInstanceMap();
-//		for (Map.Entry<String, QuartzInstance> entry : quartzInstanceMap.entrySet()) {
-//			QuartzInstance client = entry.getValue();
-//			List<Scheduler> schedulers = client.getSchedulerList();
-//			for (Scheduler scheduler : schedulers) {
-////				jobSet.add(scheduler.getName());
-//				schedulerMap.put(client.getUuid(), scheduler.getName());
-//			}
-//		}
         schedulerList = new ArrayList<Scheduler>();
         Map<String,QuartzClient> clientMap = QuartzClientContainer.getQuartzClientMap();
         Collection<QuartzClient> clients = clientMap.values();
@@ -271,10 +247,7 @@ public class JobAction extends ActionSupport {
 		map.put("durability", true);
 		map.put("jobDetailClass", "org.quartz.impl.JobDetailImpl");
 		
-		String curuuid = job.getUuid();
-		job.setUuid(Tools.generateUUID());
-		job.setQuartzConfigId(curuuid);
-		QuartzClient client = Tools.getQuartzClient(curuuid);
+		QuartzClient client = Tools.getQuartzClient(job.getQuartzConfigId());
 		client.getJmxAdapter().addJob(client, client.getSchedulerByName(job.getSchedulerName()), map);
 		
 //		jobService.addJob(job);
@@ -289,36 +262,35 @@ public class JobAction extends ActionSupport {
 	}
 
 	public String edit() throws Exception {
-
-		Job myJob = JobContainer.getJobById(jobuuid);
-		
-		job = new Job();
-		job.setUuid(myJob.getUuid());
-		job.setJobName(myJob.getJobName());
-		job.setGroup(myJob.getGroup());
-		job.setJobClass(myJob.getJobClass());
-		job.setDescription(myJob.getDescription());
-		job.setSchedulerName(myJob.getSchedulerName());
+	    propJob();
 		return "edit";
 	}
 	
+	private void propJob(){
+	    String[] props = jobuuid.split("@");
+        job = new Job();
+        job.setQuartzConfigId(props[0]);
+        job.setJobName(props[1]);
+        job.setGroup(props[2]);
+        job.setSchedulerName(props[3]);
+        job.setJobClass(props[4]);
+        if(props.length==6){
+            job.setDescription(props[5]);
+        }
+	}
 	public String update() throws Exception {
-		Job myJob = JobContainer.getJobById(jobuuid);
-		
-		myJob.setJobClass(job.getJobClass());
-		myJob.setDescription(job.getDescription());
 		
 		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("name", myJob.getJobName());
-		map.put("group", myJob.getGroup());
-		map.put("description", myJob.getDescription());
-		map.put("jobClass", myJob.getJobClass());
+		map.put("name", job.getJobName());
+		map.put("group", job.getGroup());
+		map.put("description", job.getDescription());
+		map.put("jobClass", job.getJobClass());
 		
 		map.put("durability", true);
 		map.put("jobDetailClass", "org.quartz.impl.JobDetailImpl");
 		
-		QuartzClient client = Tools.getQuartzClient(myJob.getQuartzConfigId());
-		client.getJmxAdapter().updateJob(client, client.getSchedulerByName(myJob.getSchedulerName()), map);
+		QuartzClient client = Tools.getQuartzClient(job.getQuartzConfigId());
+		client.getJmxAdapter().updateJob(client, client.getSchedulerByName(job.getSchedulerName()), map);
 		
 //		jobService.updateJob(myJob);
 		

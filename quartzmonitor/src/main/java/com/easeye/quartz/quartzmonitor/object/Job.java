@@ -5,6 +5,11 @@ import java.util.Map;
 
 import com.alibaba.fastjson.JSON;
 
+/**
+ * Job
+ * schedulerName groupName jobName唯一标示一个job
+ */
+
 public class Job {
 
 	private String uuid;
@@ -21,9 +26,17 @@ public class Job {
 	private Date nextFireTime;
 	private int numTriggers;
 	private String state;
-
+	private Scheduler scheduler;
 	
-	public String getQuartzConfigId() {
+    public Scheduler getScheduler() {
+        return scheduler;
+    }
+
+    public void setScheduler(Scheduler scheduler) {
+        this.scheduler = scheduler;
+    }
+
+    public String getQuartzConfigId() {
         return quartzConfigId;
     }
 

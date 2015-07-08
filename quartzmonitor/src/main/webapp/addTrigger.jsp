@@ -17,8 +17,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<dl>
 				<dt>名称：</dt>
 				<dd>
-					<input type="hidden" name="jobId" value="${jobId}"/>
-					<input type="hidden" name="triggeruuid" value="${triggeruuid}"/>
+					<input type="hidden" name="job.jobName" value="${jobName}"/>
+					<input type="hidden" name="job.jobGroupName" value="${jobGroupName}"/>
+					<input type="hidden" name="job.quartzConfigId" value="${schedulerConfigId}"/>
+					<input type="hidden" name="job.schedulerName" value="${schedulerName}"/>
 					<input type="text" name="triggerInput.name" maxlength="64" class="required" alt="请输入Trigger名称"/>
 					<span class="info">必填</span>
 				</dd>
