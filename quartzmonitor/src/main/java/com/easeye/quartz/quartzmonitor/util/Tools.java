@@ -64,44 +64,44 @@ public class Tools {
 		return pageCount;
 	}
 
-	public static QuartzClient getQuartzClient() {
-
-		HttpServletRequest request = ServletActionContext.getRequest();// 得到request对象
-		HttpSession session = request.getSession();// 通过request得到session对象
-		String uuid = (String) session.getAttribute("configId");
-		Map<String, QuartzClient> clientMap = QuartzClientContainer.getQuartzClientMap();
-		if (clientMap == null || clientMap.size() == 0 || uuid == null || uuid.equals("")) {
-			return null;
-		}
-		QuartzClient client = clientMap.get(uuid);
-		if (client == null) {
-			try {
-				new InitAction().execute();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			client = Tools.getQuartzClient();
-		}
+//	public static QuartzClient getQuartzClient1() {
+//
+//		HttpServletRequest request = ServletActionContext.getRequest();// 得到request对象
+//		HttpSession session = request.getSession();// 通过request得到session对象
+//		String uuid = (String) session.getAttribute("configId");
+//		Map<String, QuartzClient> clientMap = QuartzClientContainer.getQuartzClientMap();
+//		if (clientMap == null || clientMap.size() == 0 || uuid == null || uuid.equals("")) {
+//			return null;
+//		}
+//		QuartzClient client = clientMap.get(uuid);
+//		if (client == null) {
+//			try {
+//				new InitAction().execute();
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//			client = Tools.getQuartzClient();
+//		}
 		
-		return client;
-	}
-	
-	public static QuartzClient getQuartzClient(String uuid) {
-		Map<String, QuartzClient> quartzClientMap = QuartzClientContainer.getQuartzClientMap();
-		if (quartzClientMap == null || quartzClientMap.size() == 0 || uuid == null || uuid.equals("")) {
-			return null;
-		}
-		QuartzClient client = quartzClientMap.get(uuid);
-		if (client == null) {
-			try {
-				new InitAction().execute();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			client = Tools.getQuartzClient();
-		}
+//		return client;
+//	}
+//	
+//	public static QuartzClient getQuartzClient1(String uuid) {
+//		Map<String, QuartzClient> quartzClientMap = QuartzClientContainer.getQuartzClientMap();
+//		if (quartzClientMap == null || quartzClientMap.size() == 0 || uuid == null || uuid.equals("")) {
+//			return null;
+//		}
+//		QuartzClient client = quartzClientMap.get(uuid);
+//		if (client == null) {
+//			try {
+//				new InitAction().execute();
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//			client = Tools.getQuartzClient();
+//		}
 		
-		return client;
-	}
+//		return quartzClientMap.get(uuid);
+//	}
 
 }
