@@ -3,46 +3,44 @@
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
 %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 	<head>
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 		<title>添加连接</title>  
-		<link rel="stylesheet" href="css/960.css" type="text/css" media="screen" charset="utf-8" />
-		<link rel="stylesheet" href="css/template.css" type="text/css" media="screen" charset="utf-8" />
-		<link rel="stylesheet" href="css/colour.css" type="text/css" media="screen" charset="utf-8" />
+		<%@ include file="include.jsp"%>
 		<style>
 			small{
 				color:red;
 			}
 		</style>
 	</head>
-	<body>
-	<h1 id="head">调度管理</h1>
-	<ul id="navigation">
-			<li><a href="index.html">首页</a></li>
-			<li><span class="active">连接管理</span></li>
-			<li><a href="schedulerlist.html">调度器管理</a></li>
-			<li><a href="joblist.html">任务管理</a></li>
-		</ul>
+	<body> 
+	<%@ include file="toolbar.jsp"%>
+		<form action="add.action" method="post">
 			<div id="content" class="container_16 clearfix">
 				<div class="grid_16">
 					<h2>添加连接(connect) </h2>
-					<p class="error">错误提示消息.</p>
+					<c:if test="${errors['error']!=null}">
+						<p class="error">${errors["error"][0]}</p>
+					</c:if>
+					<c:if test="${not empty actionMessages[0]}">
+						<p class="success">${actionMessages[0]}</p>	
+					</c:if>
 				</div>
 				<div class="container2 clearfix">
 					<div class="grid_5">
 						<p>  
 							<label for="title">主机ip:<small>*</small></label>
-							<input type="text" name="title" />
+							<input type="text" name="host" value="${host }"/>
 						</p>
 					</div> 
-
 					<div class="grid_5">
 						<p>
 							<label for="title">主机端口: <small>*</small></label>
-							<input type="text" name="title" />
+							<input type="text" name="port" value="${port }"/>
 						</p>
 					</div>
 				</div>
@@ -50,14 +48,14 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<div class="grid_5">
 						<p>
 							<label for="title">用户名<small>*</small></label>
-							<input type="text" name="title" />
+							<input type="text" name="username" value="${username }"/>
 						</p>
 					</div>
  
 					<div class="grid_5">
 						<p>
 							<label>密码<small>*</small></label>
-							<input type="text" name="title" />
+							<input type="text" name="password" value="${password }"/>
 						</p>
 					</div>
 				</div>
@@ -68,7 +66,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					</p> 
 				</div>
 			</div>
-		
+		</form>
 		<div id="foot">
 					<a href="#">Contact Me</a>
 		</div>

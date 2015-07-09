@@ -28,9 +28,21 @@
 	</package>
 
 	<package name="quartz" extends="struts-default" namespace="/quartz">
+	<interceptors>  
+        <interceptor-stack name="storeStack">  
+            <interceptor-ref name="store">  
+                <param name="operationMode">AUTOMATIC</param>  
+            </interceptor-ref>  
+            <interceptor-ref name="paramsPrepareParamsStack" />  
+        </interceptor-stack>  
+    </interceptors>         
+    <default-interceptor-ref name="storeStack" /> 
 		<action name="add" class="com.easeye.quartz.quartzmonitor.action.ConfigAction" method="add">
-			<result name="success">/index.html</result>
-			<result name="input">/login.jsp</result>
+			<result name="success">/connectadd.jsp</result>
+			<result name="input">/connectadd.jsp</result>
+		</action>
+		<action name="preadd" class="com.easeye.quartz.quartzmonitor.action.ConfigAction" method="preadd">
+			<result name="success">/connectadd.jsp</result>
 		</action>
 		<action name="list" class="com.easeye.quartz.quartzmonitor.action.ConfigAction" method="list">
 			<result name="list">/connectlist.jsp</result>
@@ -39,11 +51,14 @@
 			<result name="listScheduler">/schedulerlist.jsp</result>
 		</action>
 		<action name="show" class="com.easeye.quartz.quartzmonitor.action.ConfigAction" method="show">
-			<result name="show">/updateInstance.jsp</result>
+			<result name="show">/connectupdate.jsp</result>
 		</action>
 		<action name="update" class="com.easeye.quartz.quartzmonitor.action.ConfigAction" method="update">
+			<result name="update">/connectupdate.jsp</result>
+			<result name="input">/connectupdate.jsp</result>
 		</action>
 		<action name="delete" class="com.easeye.quartz.quartzmonitor.action.ConfigAction" method="delete">
+			<result name="delete" type="redirect">quartz/list.action</result>
 		</action>
 	</package>
 

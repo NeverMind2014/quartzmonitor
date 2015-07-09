@@ -12,12 +12,30 @@
 				margin-left:10px;  
 			}
 		</style>
+		<script src="<%=path %>/js/jquery.js" type="text/javascript"></script>
+		<script>
+			$(function(){
+				
+				$("#add").click(function(){
+					window.location.href="preadd.action";
+				});
+				
+			});
+		</script>
 	</head>
 	<body>  
 		
 		<%@ include file="toolbar.jsp"%>
 		
 			<div id="content" class="container_16 clearfix">
+				<div class="grid_16">
+					<c:if test="${errors['error']!=null}">
+						<p class="error">${errors["error"][0]}</p>
+					</c:if>
+					<c:if test="${not empty actionMessages[0]}">
+						<p class="success">${actionMessages[0]}</p>	
+					</c:if>
+				</div>
 				<div class="grid_4">
 					<p> 
 						<label>连接名称<small>支持模糊查询</small></label>
@@ -41,7 +59,7 @@
 				<div class="grid_5">
 					<p>
 					<label>&nbsp;</label>   
-						<input type="submit" value="&nbsp;&nbsp;添&nbsp;&nbsp;加 &nbsp;&nbsp;" />
+						<input id="add" type="submit" value="&nbsp;&nbsp;添&nbsp;&nbsp;加 &nbsp;&nbsp;" />
 						
 						<input type="submit" value="&nbsp;&nbsp;删&nbsp;&nbsp;除 &nbsp;&nbsp;" />
 						
@@ -68,15 +86,9 @@
 								<td align="middle">${item.value.port }</td>
 								<td align="middle">${item.value.userName }</td>
 								<td align="middle">${item.value.password }</td>
-								<td align="middle">当前配置</td>
-<%-- 								<c:if test="#session.configId == value.uuid"> --%>
-								
-<!-- 								</s:if> -->
-<!-- 								<s:else> -->
-<%-- 								<a class="delete" href="<%=path %>/init/config?uuid=${value.configId}"  target="ajaxTodo" fresh="true">设为默认 --%>
-<!-- 								</a> -->
-<!-- 								</s:else> -->
-<!-- 								</td> -->
+								<td align="middle">
+									<a class="edit" href="show.action?uuid=${item.value.configId}">修改</a>&nbsp;&nbsp;&nbsp;&nbsp;<a class="delete" href="delete.action?uuid=${item.value.configId}">删除</a>
+								</td>
 							</tr>
 						</c:forEach>
 							<tfoot>
@@ -93,7 +105,6 @@
 		
 		<div id="foot">
 					<a href="#">Contact Me</a>
-				
 		</div>
 	</body>
 </html>

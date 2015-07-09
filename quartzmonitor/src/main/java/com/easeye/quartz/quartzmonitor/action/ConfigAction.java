@@ -37,37 +37,52 @@ public class ConfigAction extends ActionSupport {
 	
 	private List<Scheduler> schedulerList;
 	
+	
+	/**
+	 * 添加链接页面
+	 * @return
+	 * @throws Exception
+	 */
+	public String preadd() throws Exception {
+		return "success";
+	}
 
 	public String add() throws Exception {
-
 		String id = Tools.generateUUID();
 		QuartzConfig quartzConfig = new QuartzConfig(id, host, port, username, password);
 		QuartzClient client = new QuartzClient(quartzConfig);
-		client.init();
-		log.info("add a quartz info!");
-		
-	    configService.addQuartzConfig(quartzConfig);
-		
-//		XstreamUtil.object2XML(quartzConfig);
-		
-		Result result = new Result();
-		result.setNavTabId("main");
-		result.setMessage("添加成功");
-		JsonUtil.toJson(new Gson().toJson(result));
-		return null;
+		try {
+			client.init();
+			log.info("链接远程主机"+this.host+":"+this.port+"成功!");
+		} catch (Exception e) {
+			log.info("链接远程主机"+this.host+":"+this.port+"异常");
+			this.addFieldError("error", "链接远程主机"+this.host+":"+this.port+"异常;"+e.getMessage());
+		}
+		if(this.hasFieldErrors()){
+			return "input";
+		}
+		configService.addQuartzConfig(quartzConfig);
+		this.addActionMessage("添加成功!");
+		return "success";
 	}
 	
+	/**
+	 * 链接管理页面
+	 * @return
+	 * @throws Exception
+	 */
 	public String list() throws Exception {
-
 		quartzMap = QuartzClientContainer.getConfigMap();
-		
 		log.info("get quartz map info.map size:"+quartzMap.size());
-		
 		return "list";
 	}
     
+	/**
+	 * 调度器管理页面
+	 * @return
+	 * @throws Exception
+	 */
     public String listScheduler() throws Exception {
-
         schedulerList = new ArrayList<Scheduler>();
         Map<String,QuartzClient> instanceMap = QuartzClientContainer.getQuartzClientMap();
         Collection<QuartzClient> instances = instanceMap.values();
@@ -81,7 +96,6 @@ public class ConfigAction extends ActionSupport {
 
 	
 	public String show() throws Exception {
-
 		QuartzConfig quartzConfig = QuartzClientContainer.getQuartzConfig(uuid);
 		log.info("get a quartz info! uuid:"+uuid);
 		uuid = quartzConfig.getConfigId();
@@ -93,18 +107,22 @@ public class ConfigAction extends ActionSupport {
 	}
 	
 	public String update() throws Exception {
-	    
 		QuartzConfig quartzConfig = new QuartzConfig(uuid,host, port, username,password);
 		QuartzClient client = new QuartzClient(quartzConfig);
-		client.init();
-		log.info("update a quartz info!");
 		
+		try {
+			client.init();
+			log.info("链接远程主机"+this.host+":"+this.port+"成功!");
+		} catch (Exception e) {
+			log.info("链接远程主机"+this.host+":"+this.port+"异常");
+			this.addFieldError("error", "链接远程主机"+this.host+":"+this.port+"异常;"+e.getMessage());
+		}
+		if(this.hasFieldErrors()){
+			return "input";
+		}
 	    configService.updateQuartzConfig(quartzConfig);
-		
-		Result result = new Result();
-		result.setMessage("修改成功");
-		JsonUtil.toJson(new Gson().toJson(result));
-		return null;
+		this.addActionMessage("修改成功");
+		return "update";
 	}
 	
 	public String delete() throws Exception {
@@ -114,13 +132,8 @@ public class ConfigAction extends ActionSupport {
 		log.info("delete a quartz info!");
 		
 		configService.deleteQuartzConfig(uuid);
-		
-//		XstreamUtil.removeXml(uuid);
-		
-		Result result = new Result();
-		result.setMessage("删除成功");
-		JsonUtil.toJson(new Gson().toJson(result));
-		return null;
+		this.addActionMessage("删除成功"); 	
+		return "delete";
 	}
 	
 	
