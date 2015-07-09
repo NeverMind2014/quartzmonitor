@@ -7,9 +7,9 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.easeye.quartz.quartzmonitor.core.QuartzClient;
 import com.easeye.quartz.quartzmonitor.core.QuartzClientContainer;
 import com.easeye.quartz.quartzmonitor.object.Job;
-import com.easeye.quartz.quartzmonitor.object.QuartzClient;
 import com.easeye.quartz.quartzmonitor.object.Result;
 import com.easeye.quartz.quartzmonitor.object.Scheduler;
 import com.easeye.quartz.quartzmonitor.object.Trigger;
@@ -43,20 +43,19 @@ public class TriggerAction extends ActionSupport {
 	
 	private void deleteTrigger(Trigger trigger, Job job) throws Exception {
         QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
-        client.getJmxAdapter().deleteTrigger(client, client.getSchedulerByName(job.getSchedulerName()), trigger);
+        client.deleteTrigger(job.getSchedulerName(), trigger);
 	}
 	
 	private void addTrigger(Map<String, Object> triggerMap, Job job) throws Exception {
         QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
-        client.getJmxAdapter().addTriggerForJob(client, client.getSchedulerByName(job.getSchedulerName()), job,triggerMap);
+        client.addTriggerForJob(job.getSchedulerName(), job,triggerMap);
 	}
 	
 	public String list() throws Exception {
 
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
-		Scheduler scheduler = client.getSchedulerByName(job.getSchedulerName());
 		//根据schedulerObjectName jobName jobGroupName查询triggers
-		List<Trigger> temp = client.getJmxAdapter().getTriggersForJob(client, scheduler,job.getJobName(), job.getGroup());
+		List<Trigger> temp = client.getTriggersForJob(job.getSchedulerName(),job.getJobName(), job.getGroup());
 		if(temp == null || temp.size() == 0){
 	 		return "list";
 		}
@@ -112,7 +111,7 @@ public class TriggerAction extends ActionSupport {
 
 	public String pause() throws Exception {
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
-		client.getJmxAdapter().pauseTrigger(client, client.getSchedulerByName(job.getSchedulerName()), trigger);
+		client.pauseTrigger(job.getSchedulerName(), trigger);
 		Result result = new Result();
 		result.setMessage("trigger已暂停");
 		result.setNavTabId("triggerList");
@@ -123,8 +122,8 @@ public class TriggerAction extends ActionSupport {
 	
 	public String resume() throws Exception {
         QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
-        client.getJmxAdapter().pauseTrigger(client, client.getSchedulerByName(job.getSchedulerName()), trigger);
-		client.getJmxAdapter().resumeTrigger(client, client.getSchedulerByName(job.getSchedulerName()), trigger);
+//        client.getJmxAdapter().pauseTrigger(client, client.getSchedulerByName(job.getSchedulerName()), trigger);
+		client.resumeTrigger(job.getSchedulerName(), trigger);
 		
 		Result result = new Result();
 		result.setMessage("trigger已回复");

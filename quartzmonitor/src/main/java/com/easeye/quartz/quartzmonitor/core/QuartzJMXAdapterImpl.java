@@ -8,15 +8,17 @@ import java.util.List;
 import java.util.Map;
 
 import javax.management.MBeanServerConnection;
+import javax.management.NotificationFilter;
+import javax.management.NotificationListener;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.TabularDataSupport;
 
 import org.apache.log4j.Logger;
 
+import com.easeye.quartz.quartzmonitor.core.notificationlistener.MyNotificationListener;
 import com.easeye.quartz.quartzmonitor.object.JMXInput;
 import com.easeye.quartz.quartzmonitor.object.Job;
-import com.easeye.quartz.quartzmonitor.object.QuartzClient;
 import com.easeye.quartz.quartzmonitor.object.Scheduler;
 import com.easeye.quartz.quartzmonitor.object.Trigger;
 import com.easeye.quartz.quartzmonitor.util.JMXUtil;
@@ -111,9 +113,9 @@ public class QuartzJMXAdapterImpl implements QuartzJMXAdapter {
 	}
 
 	@Override
-	public void attachListener(QuartzClient client, String scheduleID) throws Exception {
-		// TODO Auto-generated method stub
-
+	public void attachListener(QuartzClient client, ObjectName objectName,NotificationListener listener, NotificationFilter filter, Object handback) throws Exception {
+        MBeanServerConnection connection = client.getMBeanServerConnection();
+        connection.addNotificationListener(objectName, listener, filter, handback);
 	}
 
 	@Override

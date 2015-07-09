@@ -2,6 +2,8 @@ package com.easeye.quartz.quartzmonitor.object;
 
 import javax.management.ObjectName;
 
+import com.easeye.quartz.quartzmonitor.core.QuartzClient;
+
 public class JMXInput {
 	private QuartzClient quartzClient;
 	private String[] signature;

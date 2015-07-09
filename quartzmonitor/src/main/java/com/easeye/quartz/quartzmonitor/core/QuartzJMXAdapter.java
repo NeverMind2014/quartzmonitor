@@ -3,10 +3,11 @@ package com.easeye.quartz.quartzmonitor.core;
 import java.util.List;
 import java.util.Map;
 
+import javax.management.NotificationFilter;
+import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
 import com.easeye.quartz.quartzmonitor.object.Job;
-import com.easeye.quartz.quartzmonitor.object.QuartzClient;
 import com.easeye.quartz.quartzmonitor.object.Scheduler;
 import com.easeye.quartz.quartzmonitor.object.Trigger;
 
@@ -22,7 +23,7 @@ public interface QuartzJMXAdapter {
 
 	public List<Trigger> getTriggersForJob(QuartzClient client, Scheduler scheduler, String jobName, String groupName) throws Exception;
 
-	public void attachListener(QuartzClient client, String scheduleID) throws Exception;
+	public void attachListener(QuartzClient client, ObjectName objectName, NotificationListener listener, NotificationFilter filter, Object handback) throws Exception;
 
 	public Scheduler getSchedulerByJmx(QuartzClient client, ObjectName objectName) throws Exception;
 

@@ -11,9 +11,9 @@ import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 
+import com.easeye.quartz.quartzmonitor.core.QuartzClient;
 import com.easeye.quartz.quartzmonitor.core.QuartzClientContainer;
 import com.easeye.quartz.quartzmonitor.object.Job;
-import com.easeye.quartz.quartzmonitor.object.QuartzClient;
 import com.easeye.quartz.quartzmonitor.object.Result;
 import com.easeye.quartz.quartzmonitor.object.Scheduler;
 import com.easeye.quartz.quartzmonitor.object.Trigger;
@@ -49,10 +49,9 @@ public class JobAction extends ActionSupport {
 	private Integer pageCount;// 总页数
 	private Integer size;
 
-	private JobService jobService = new JobServiceImpl();
-	private TriggerService triggerService = new TriggerServiceImpl();
+//	private JobService jobService = new JobServiceImpl();
 	
-	private void addTriggerRemote(Trigger trigger, Job nativeJob) throws Exception {
+	private void addTriggerRemote(Trigger trigger, Job job) throws Exception {
 		HashMap<String, Object> triggerMap = new HashMap<String, Object>();
 		triggerMap.put("name", trigger.getName());
 		triggerMap.put("group",trigger.getGroup());
@@ -61,9 +60,8 @@ public class JobAction extends ActionSupport {
 		triggerMap.put("triggerClass", "org.quartz.impl.triggers.CronTriggerImpl");
 		triggerMap.put("jobName", trigger.getJobName());
 		triggerMap.put("jobGroup", trigger.getGroup());
-		
-		QuartzClient client = QuartzClientContainer.getQuartzClient(nativeJob.getQuartzConfigId());
-		client.getJmxAdapter().addTriggerForJob(client, client.getSchedulerByName(nativeJob.getSchedulerName()), nativeJob,triggerMap);
+		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
+		client.addTriggerForJob(job.getSchedulerName(), job,triggerMap);
 	}
 	
 	/**
@@ -71,74 +69,24 @@ public class JobAction extends ActionSupport {
 	 * @param nativeJob
 	 * @throws Exception
 	 */
-	private void addJobRemote(Job nativeJob) throws Exception {
+	private void addJobRemote(Job job) throws Exception {
 		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("name", nativeJob.getJobName());
-		map.put("group", nativeJob.getGroup());
-		map.put("description", nativeJob.getDescription());
-		map.put("jobClass", nativeJob.getJobClass());
+		map.put("name", job.getJobName());
+		map.put("group", job.getGroup());
+		map.put("description", job.getDescription());
+		map.put("jobClass", job.getJobClass());
 		map.put("durability", true);
 		map.put("jobDetailClass", "org.quartz.impl.JobDetailImpl");
 		
-		QuartzClient client = QuartzClientContainer.getQuartzClient(nativeJob.getQuartzConfigId());
-		client.getJmxAdapter().addJob(client, client.getSchedulerByName(nativeJob.getSchedulerName()), map);
-	}
-	
-	/**
-	 * 把本地job同步到服务端
-	 * @throws Exception
-	 */
-	private void syncJobs() throws Exception {
-		Map<String, QuartzClient> quartzInstanceMap = QuartzClientContainer.getQuartzClientMap();
-		for (Map.Entry<String, QuartzClient> entry : quartzInstanceMap.entrySet()) {
-			QuartzClient client = entry.getValue();
-			List<Scheduler> schedulers = client.getSchedulerList();
-			log.info(" schedulers list size:" + schedulers.size());
-			if (schedulers != null && schedulers.size() > 0) {
-				for (int i = 0; i < schedulers.size(); i++) {
-					Scheduler scheduler = schedulers.get(i);
-					//同步
-					List<Job> nativeJobs = jobService.getALLJobs(scheduler.getConfig().getConfigId());
-					List<Job> remoteJobs = client.getJmxAdapter().getJobDetails(client, scheduler);
-					for (Job nativeJob : nativeJobs) {
-						boolean nativeJobExistInRemote = false;
-						for (Job remoteJob :remoteJobs) {
-							if (remoteJob.getJobName().equals(nativeJob.getJobName()) && remoteJob.getGroup().equals(nativeJob.getGroup())) {
-								nativeJobExistInRemote = true;
-								break;
-							}
-						}
-						if (!nativeJobExistInRemote) {
-							nativeJob.setSchedulerName(scheduler.getName());
-							addJobRemote(nativeJob);
-						}
-					}
-				}
-			}
-		}
+		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
+		client.addJob(job.getSchedulerName(), map);
 	}
 	
 	public String list() throws Exception {
 		Map<String, QuartzClient> quartzClientMap = QuartzClientContainer.getQuartzClientMap();
 		for (Map.Entry<String, QuartzClient> entry : quartzClientMap.entrySet()) {
-			QuartzClient client = entry.getValue();
-			List<Scheduler> schedulers = client.getSchedulerList();
-			log.info(" schedulers list size:" + schedulers.size());
-			if (schedulers != null && schedulers.size() > 0) {
-				for (int i = 0; i < schedulers.size(); i++) {
-					Scheduler scheduler = schedulers.get(i);
-					List<Job> temp = null;
-					try {
-                        temp = client.getJmxAdapter().getJobDetails(client, scheduler);
-                    }
-                    catch (Exception e) {
-                        log.info(e.getMessage(),e);
-                    }
-					if(CollectionUtils.isNotEmpty(temp)){
-					    jobList.addAll(temp);
-					}
-				}
-			}
+		    QuartzClient client = entry.getValue();
+            jobList.addAll(client.getAllJobs());
 		}
 		pageCount = Tools.getPageSize(jobList.size(), numPerPage);
 		if (pageNum < 1) {
@@ -156,7 +104,7 @@ public class JobAction extends ActionSupport {
 
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
 		
-		client.getJmxAdapter().startJobNow(client, client.getSchedulerByName(job.getSchedulerName()), job);
+		client.startJobNow(job.getSchedulerName(), job);
 
 		Result result = new Result();
 		result.setStatusCode("200");
@@ -171,7 +119,7 @@ public class JobAction extends ActionSupport {
 	    propJob();
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
 		log.info("delete a quartz job!");
-		client.getJmxAdapter().deleteJob(client, client.getSchedulerByName(job.getSchedulerName()), job);
+		client.deleteJob(job.getSchedulerName(), job);
 		Result result = new Result();
 		result.setMessage("删除成功");
 		JsonUtil.toJson(new Gson().toJson(result));
@@ -183,7 +131,7 @@ public class JobAction extends ActionSupport {
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
 		log.info("pause a quartz job!");
 //		找到scheduler并暂停对应的job
-		client.getJmxAdapter().pauseJob(client, client.getSchedulerByName(job.getSchedulerName()), job);
+		client.pauseJob(job.getSchedulerName(), job);
 		Result result = new Result();
 		result.setMessage("Job已暂停");
 		result.setCallbackType("");
@@ -194,7 +142,7 @@ public class JobAction extends ActionSupport {
 	public String resume() throws Exception {
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
 		log.info("resume a quartz job!");
-		client.getJmxAdapter().resumeJob(client, client.getSchedulerByName(job.getSchedulerName()), job);
+		client.resumeJob(job.getSchedulerName(), job);
 		Result result = new Result();
 		result.setMessage("Job已恢复");
 		result.setCallbackType("");
@@ -241,7 +189,7 @@ public class JobAction extends ActionSupport {
 		//找到需要增加job的client
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
 		//找到需要添加job的scheduler 并添加job
-		client.getJmxAdapter().addJob(client, client.getSchedulerByName(job.getSchedulerName()), map);
+		client.addJob(job.getSchedulerName(), map);
 		log.info("add job successfully!");
 
 		Result result = new Result();
@@ -275,12 +223,11 @@ public class JobAction extends ActionSupport {
 		map.put("group", job.getGroup());
 		map.put("description", job.getDescription());
 		map.put("jobClass", job.getJobClass());
-		
 		map.put("durability", true);
 		map.put("jobDetailClass", "org.quartz.impl.JobDetailImpl");
 		
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
-		client.getJmxAdapter().updateJob(client, client.getSchedulerByName(job.getSchedulerName()), map);
+		client.updateJob(job.getSchedulerName(), map);
 		
 		Result result = new Result();
 		result.setMessage("修改成功");

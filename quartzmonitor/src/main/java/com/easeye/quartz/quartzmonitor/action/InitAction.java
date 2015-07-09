@@ -14,8 +14,8 @@ import org.apache.struts2.ServletActionContext;
 import org.quartz.CronExpression;
 
 import com.easeye.quartz.quartzmonitor.conf.AuthenticationConfig;
+import com.easeye.quartz.quartzmonitor.core.QuartzClient;
 import com.easeye.quartz.quartzmonitor.core.QuartzClientContainer;
-import com.easeye.quartz.quartzmonitor.object.QuartzClient;
 import com.easeye.quartz.quartzmonitor.object.QuartzConfig;
 import com.easeye.quartz.quartzmonitor.object.Result;
 import com.easeye.quartz.quartzmonitor.util.JsonUtil;

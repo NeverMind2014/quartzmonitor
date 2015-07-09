@@ -14,9 +14,7 @@
 </style>
 </head>
 <body>
-			
 	<%@ include file="toolbar.jsp"%>
-
 	<div id="content" class="container_16 clearfix">
 		<div class="grid_4">
 			<p>

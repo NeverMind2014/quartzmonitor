@@ -9,8 +9,8 @@ import javax.management.remote.JMXServiceURL;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.easeye.quartz.quartzmonitor.core.QuartzClient;
 import com.easeye.quartz.quartzmonitor.object.JMXInput;
-import com.easeye.quartz.quartzmonitor.object.QuartzClient;
 import com.easeye.quartz.quartzmonitor.object.QuartzConfig;
 
 public class JMXUtil {

@@ -8,7 +8,6 @@ import javax.servlet.ServletContextListener;
 
 import org.apache.log4j.Logger;
 
-import com.easeye.quartz.quartzmonitor.object.QuartzClient;
 import com.easeye.quartz.quartzmonitor.object.QuartzConfig;
 import com.easeye.quartz.quartzmonitor.object.Scheduler;
 import com.easeye.quartz.quartzmonitor.service.QuartzConfigService;
@@ -27,10 +26,10 @@ public class InitListener implements ServletContextListener {
 			List<QuartzConfig> list = schedulerService.getALLQuartzConfigs();
 			for (QuartzConfig config : list) {
 				try {
-					QuartzConnectService quartzConnectService = new QuartzConnectServiceImpl();
-					/*QuartzClient client = */quartzConnectService.initClient(config);
-//					QuartzClientContainer.addQuartzConfig(config);
-//					QuartzClientContainer.addQuartzClient(config.getConfigId(), client);
+				    
+//					QuartzConnectService quartzConnectService = new QuartzConnectServiceImpl();
+//					/*QuartzClient client = */quartzConnectService.initClient(config);
+					new QuartzClient(config).init();
 				} catch (FileNotFoundException e) {
 					logger.error(e.getMessage(), e);
 					e.printStackTrace();

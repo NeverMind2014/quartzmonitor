@@ -7,10 +7,8 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.easeye.quartz.quartzmonitor.core.QuartzClient;
 import com.easeye.quartz.quartzmonitor.core.QuartzClientContainer;
-import com.easeye.quartz.quartzmonitor.core.QuartzConnectService;
-import com.easeye.quartz.quartzmonitor.core.QuartzConnectServiceImpl;
-import com.easeye.quartz.quartzmonitor.object.QuartzClient;
 import com.easeye.quartz.quartzmonitor.object.QuartzConfig;
 import com.easeye.quartz.quartzmonitor.object.Result;
 import com.easeye.quartz.quartzmonitor.object.Scheduler;
@@ -44,9 +42,8 @@ public class ConfigAction extends ActionSupport {
 
 		String id = Tools.generateUUID();
 		QuartzConfig quartzConfig = new QuartzConfig(id, host, port, username, password);
-		QuartzConnectService quartzConnectService = new QuartzConnectServiceImpl();
-		quartzConnectService.initClient(quartzConfig);
-		//QuartzInstanceService.putQuartzInstance(quartzInstance);
+		QuartzClient client = new QuartzClient(quartzConfig);
+		client.init();
 		log.info("add a quartz info!");
 		
 	    configService.addQuartzConfig(quartzConfig);
@@ -96,17 +93,13 @@ public class ConfigAction extends ActionSupport {
 	}
 	
 	public String update() throws Exception {
-
+	    
 		QuartzConfig quartzConfig = new QuartzConfig(uuid,host, port, username,password);
-		QuartzConnectService quartzConnectService = new QuartzConnectServiceImpl();
-		QuartzClient client = quartzConnectService.initClient(quartzConfig);
-		QuartzClientContainer.addQuartzConfig(quartzConfig);
-		QuartzClientContainer.addQuartzClient(uuid, client);
+		QuartzClient client = new QuartzClient(quartzConfig);
+		client.init();
 		log.info("update a quartz info!");
 		
 	    configService.updateQuartzConfig(quartzConfig);
-		
-//		XstreamUtil.object2XML(quartzConfig);
 		
 		Result result = new Result();
 		result.setMessage("修改成功");

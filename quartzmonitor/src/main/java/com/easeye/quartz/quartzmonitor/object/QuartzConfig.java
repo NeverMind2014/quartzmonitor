@@ -10,7 +10,7 @@ public class QuartzConfig {
 	private int port;
 	private String userName;
 	private String password;
-	private boolean status;
+	private boolean isConnected;
 
 	public QuartzConfig() {
 	}
@@ -73,12 +73,12 @@ public class QuartzConfig {
 		this.password = password;
 	}
 
-    public boolean isStatus() {
-        return status;
+    public boolean isConnected() {
+        return isConnected;
     }
 
-    public void setStatus(boolean status) {
-        this.status = status;
+    public void setConnected(boolean isConnected) {
+        this.isConnected = isConnected;
     }
 
 }

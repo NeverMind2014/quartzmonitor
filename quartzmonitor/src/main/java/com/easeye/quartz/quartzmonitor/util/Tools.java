@@ -23,8 +23,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
 
 import com.easeye.quartz.quartzmonitor.action.InitAction;
+import com.easeye.quartz.quartzmonitor.core.QuartzClient;
 import com.easeye.quartz.quartzmonitor.core.QuartzClientContainer;
-import com.easeye.quartz.quartzmonitor.object.QuartzClient;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
