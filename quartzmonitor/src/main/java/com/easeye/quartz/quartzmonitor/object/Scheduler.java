@@ -1,8 +1,14 @@
 package com.easeye.quartz.quartzmonitor.object;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.management.ObjectName;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import com.easeye.quartz.quartzmonitor.core.QuartzClient;
+import com.easeye.quartz.quartzmonitor.core.notificationlistener.SchedulerNotificationListener;
 
 public class Scheduler {
 
@@ -18,6 +24,7 @@ public class Scheduler {
 	private String threadPoolClassName;
 	private int threadPoolSize;
 	private QuartzClient client;
+	private List<SchedulerNotificationListener> listeners = new ArrayList<SchedulerNotificationListener>();
 	
     public QuartzClient getClient() {
         return client;
@@ -110,4 +117,31 @@ public class Scheduler {
 	public void setThreadPoolSize(int threadPoolSize) {
 		this.threadPoolSize = threadPoolSize;
 	}
+
+    public List<SchedulerNotificationListener> getListeners()
+    {
+        return listeners;
+    }
+
+    public void setListeners(List<SchedulerNotificationListener> listeners)
+    {
+        this.listeners = listeners;
+    }
+    
+    public void close(){
+        //remove SchedulerNotificationListener if any
+        if(CollectionUtils.isNotEmpty(listeners)){
+            for (SchedulerNotificationListener listener : listeners)
+            {
+                try
+                {
+                    this.client.removeListener(this.objectName, listener, null, null);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }

@@ -30,15 +30,15 @@ public class QuartzClientContainer {
 	public static void close(){
 	    isClosed = true;
 	    EXECUTOR.shutdownNow();
-	    closeConnector();
+	    closeClient();
 	}
 
-    private static void closeConnector(){
+    private static void closeClient(){
         Set<Entry<String, QuartzClient>> entrySet = quartzClientMap.entrySet();
         for (Entry<String, QuartzClient> entry : entrySet) {
             QuartzClient client = entry.getValue();
             try {
-                client.getJmxConnector().close();
+                client.close();
             }
             catch (IOException e) {
                 logger.error(e.getMessage(),e);
@@ -48,8 +48,6 @@ public class QuartzClientContainer {
     }
 	
 	public static void addQuartzClient(String id, QuartzClient client) {
-	    //标示连接成功
-	    configMap.get(id).setConnected(true);
 		quartzClientMap.put(id, client);
 	}
 

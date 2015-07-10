@@ -194,10 +194,8 @@ public class ConfigAction extends ActionSupport {
 	 */
 	public String delete() throws Exception {
 
-		QuartzClientContainer.removeQuartzConfig(uuid);
-		QuartzClientContainer.removeQuartzClient(uuid);
+		QuartzClientContainer.getQuartzClient(uuid).close();
 		log.info("delete a quartz info!");
-		
 		configService.deleteQuartzConfig(uuid);
 		this.addActionMessage("删除成功"); 	
 		return "delete";

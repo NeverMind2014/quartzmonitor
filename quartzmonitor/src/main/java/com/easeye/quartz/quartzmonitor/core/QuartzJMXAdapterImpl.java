@@ -119,6 +119,14 @@ public class QuartzJMXAdapterImpl implements QuartzJMXAdapter {
         connection.addNotificationListener(objectName, listener, filter, handback);
 	}
 
+    @Override
+    public void removeListener(QuartzClient client, ObjectName objectName, NotificationListener listener,
+            NotificationFilter filter, Object handback) throws Exception
+    {
+        MBeanServerConnection connection = client.getMBeanServerConnection();
+        connection.removeNotificationListener(objectName, listener, filter, handback);
+    }
+
 	@Override
 	public Scheduler getSchedulerByJmx(QuartzClient client, ObjectName objectName)
 			throws Exception {
