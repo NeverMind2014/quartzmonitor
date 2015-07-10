@@ -6,11 +6,41 @@
 	<head>
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 		<title>调度器管理</title>
-			<%@ include file="include.jsp"%>
+		<%@ include file="include.jsp"%>
+		<script src="<%=path %>/js/jquery.js"></script>
+		<link rel="stylesheet" href="<%=path %>/css/ui-dialog.css">
+		<script src="<%=path %>/js/dialog-min.js"></script>
+		<script>  
+		$(function(){
+			$("table > tbody > tr").click(function(){
+				var uuid = $(this).find("input:hidden").val();
+				$.ajax({
+					url:'queryScheduler.action?uuid='+uuid,
+					success:function(data){
+						var html='<table>'+
+								'<tr><td>远程地址</td><td>'+ data.config.host+":"+data.config.port +'</td></tr>'+
+								'<tr><td>调度器名称</td><td>'+ data.name +'</td></tr>'+
+								'<tr><td>JMX MBean名称</td><td>'+ data.remoteInstanceId +'</td></tr>'+
+								'<tr><td>是否关闭</td><td>'+ data.started +'</td></tr>'+
+								'<tr><td>待机模式</td><td>'+ data.standByMode +'</td></tr>'+
+								'<tr><td>存储器类名</td><td>'+ data.jobStoreClassName +'</td></tr>'+
+								'<tr><td>线程池类名</td><td>'+ data.threadPoolClassName +'</td></tr>'+
+								'<tr><td>线程池大小</td><td>'+ data.threadPoolSize +'</td></tr>'+
+						'</table>';
+						dialog({
+							fixed: false,
+							title:'调度器详细信息:',
+						    content: html,
+						    ok: function () {},
+						}).show();		
+					}
+				});
+			});
+		})
+		</script>
 	</head>
 	<body>  
 			<%@ include file="toolbar.jsp"%>
-		
 			<div id="content" class="container_16 clearfix">
 				<div class="grid_4">
 					<p> 
@@ -43,56 +73,60 @@
 				<div class="grid_16">
 					<table>
 						<thead>
-							<tr>
+							<tr> 
 								<th>远程地址</th>
-								<th>调度器名称</th>
-								<th>JMX MBean名称</th>
-								<th>是否关闭</th>
-								<th>待机模式</th>
+								<th width="490">调度器名称</th><!-- 
+								<th>JMX MBean名称</th> -->
+								<th width="55">是否关闭</th>
+								<th width="55">待机模式</th>
+								<!--     
 								<th>存储器类名</th>
 								<th>线程池类名</th>
 								<th>线程池大小</th>
-								<th>操作</th>
+								 -->      
+								<th style="align:center">操作</th>
 							</tr>
 						</thead>
 						<tfoot>
-							<tr> 
-								<td colspan="9" class="pagination">
+							<tr>   
+								<td colspan="5" class="pagination">
 									<span class="active curved">1</span><a href="#" class="curved">2</a><a href="#" class="curved">3</a><a href="#" class="curved">4</a> ... <a href="#" class="curved">10 million</a>
 								</td>
 							</tr>
 						</tfoot>
 						<tbody>
-							<tr>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td><a href="#" class="edit">Edit</a><a href="#" class="delete">Delete</a></td>
+						<c:forEach items="${schedulerList }" var="scheduler" varStatus="status">
+							<tr <c:if test="${status.index%2==0 }">class="alt"</c:if>>
+								<td>${scheduler.config.host }:${scheduler.config.port}</td>
+								<!-- 
+								<td>${scheduler.name}</td>
+								 -->
+								 <input type="hidden" value="${scheduler.config.configId}"/>
+								<td>${scheduler.objectName }</td>
+								<td>
+									<c:if test="${scheduler.shutdown}">
+										关闭
+									</c:if>
+									<c:if test="${scheduler.started}">
+										started
+									</c:if>
+								</td>
+								<td>${scheduler.standByMode}</td>
+								<!-- 
+								<td>${scheduler.jobStoreClassName}</td>
+								<td>${scheduler.threadPoolClassName}</td>
+								<td>${scheduler.threadPoolSize}</td>
+								 -->
+								<td><a href="#" class="edit">暂停</a><a href="#" class="delete">恢复</a></td>
 							</tr>
-							<tr class="alt">
-								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td></td>
-								<td><a href="#" class="edit">Edit</a><a href="#" class="delete">Delete</a></td>
-							</tr>
+							</c:forEach>
 						</tbody>
 					</table>
 				</div>
 			</div>
 		
 		<div id="foot">
-					<a href="#">Contact Me</a>
-				
+				<a href="#">Contact Me</a>
 		</div>
 	</body>
 </html>

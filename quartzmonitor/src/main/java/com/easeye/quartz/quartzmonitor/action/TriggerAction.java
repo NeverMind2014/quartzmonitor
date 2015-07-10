@@ -11,11 +11,9 @@ import com.easeye.quartz.quartzmonitor.core.QuartzClient;
 import com.easeye.quartz.quartzmonitor.core.QuartzClientContainer;
 import com.easeye.quartz.quartzmonitor.object.Job;
 import com.easeye.quartz.quartzmonitor.object.Result;
-import com.easeye.quartz.quartzmonitor.object.Scheduler;
 import com.easeye.quartz.quartzmonitor.object.Trigger;
 import com.easeye.quartz.quartzmonitor.object.TriggerInput;
 import com.easeye.quartz.quartzmonitor.util.JsonUtil;
-import com.easeye.quartz.quartzmonitor.util.Tools;
 import com.google.gson.Gson;
 import com.opensymphony.xwork2.ActionSupport;
 

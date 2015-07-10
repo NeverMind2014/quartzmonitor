@@ -20,13 +20,17 @@
 					window.location.href="preadd.action";
 				});
 				
+				$("#query").click(function(){
+					
+				});
+				
 			});
 		</script>
 	</head>
 	<body>  
 		
 		<%@ include file="toolbar.jsp"%>
-		
+		<form action="" method="post">
 			<div id="content" class="container_16 clearfix">
 				<div class="grid_16">
 					<c:if test="${errors['error']!=null}">
@@ -39,20 +43,20 @@
 				<div class="grid_4">
 					<p> 
 						<label>连接名称<small>支持模糊查询</small></label>
-						<input type="text" />
+						<input type="text" name="quartzConfig.name" />
 					</p>
 				</div>
 				<div class="grid_5">
 					<p>
 						<label>主机名</label>
-						<input type="text" />
+						<input name="quartzConfig.host" type="text" />
 					</p>
 				</div>
 				
 				<div class="grid_2">
 					<p>
 						<label>&nbsp;</label> 
-						<input type="submit" value="&nbsp;&nbsp;查&nbsp;&nbsp;询 &nbsp;&nbsp;" />
+						<input id="query" type="submit" value="&nbsp;&nbsp;查&nbsp;&nbsp;询 &nbsp;&nbsp;" />
 					</p>
 				</div>
 				   
@@ -60,10 +64,6 @@
 					<p>
 					<label>&nbsp;</label>   
 						<input id="add" type="submit" value="&nbsp;&nbsp;添&nbsp;&nbsp;加 &nbsp;&nbsp;" />
-						
-						<input type="submit" value="&nbsp;&nbsp;删&nbsp;&nbsp;除 &nbsp;&nbsp;" />
-						
-						<input type="submit" value="&nbsp;&nbsp;修&nbsp;&nbsp;改 &nbsp;&nbsp;" />
 					</p>
 				</div>
 				<div class="grid_16">
@@ -102,7 +102,7 @@
 					</table>
 				</div>
 			</div>
-		
+		</form>
 		<div id="foot">
 					<a href="#">Contact Me</a>
 		</div>

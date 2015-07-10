@@ -2,10 +2,13 @@ package com.easeye.quartz.quartzmonitor.action;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.struts2.ServletActionContext;
 
 import com.easeye.quartz.quartzmonitor.core.QuartzClient;
 import com.easeye.quartz.quartzmonitor.core.QuartzClientContainer;
@@ -37,6 +40,8 @@ public class ConfigAction extends ActionSupport {
 	
 	private List<Scheduler> schedulerList;
 	
+	private QuartzConfig q_config;
+	
 	
 	/**
 	 * 添加链接页面
@@ -46,7 +51,11 @@ public class ConfigAction extends ActionSupport {
 	public String preadd() throws Exception {
 		return "success";
 	}
-
+	/**
+	 * 添加一个远程连接
+	 * @return
+	 * @throws Exception
+	 */
 	public String add() throws Exception {
 		String id = Tools.generateUUID();
 		QuartzConfig quartzConfig = new QuartzConfig(id, host, port, username, password);
@@ -73,6 +82,25 @@ public class ConfigAction extends ActionSupport {
 	 */
 	public String list() throws Exception {
 		quartzMap = QuartzClientContainer.getConfigMap();
+		if(q_config!=null){
+		HashMap<String, QuartzConfig> map = new HashMap<String, QuartzConfig>();
+		for (String key : quartzMap.keySet()) {
+			QuartzConfig quartzConfig = quartzMap.get(key);
+			if(StringUtils.isNotBlank(q_config.getHost())&&StringUtils.isNotBlank(q_config.getName())){
+				if(quartzConfig.getHost().contains(q_config.getHost())&&quartzConfig.getName().contains(q_config.getName())){
+					map.put(quartzConfig.getConfigId(), quartzConfig);
+				}
+			}else if(!StringUtils.isNotBlank(q_config.getHost())&&StringUtils.isNotBlank(q_config.getName())){
+				if(quartzConfig.getName().contains(q_config.getName())){
+					map.put(quartzConfig.getConfigId(), quartzConfig);
+				}
+			}else {
+				if(quartzConfig.getHost().contains(q_config.getHost())){
+					map.put(quartzConfig.getConfigId(), quartzConfig);
+				}
+			}
+		}
+		}
 		log.info("get quartz map info.map size:"+quartzMap.size());
 		return "list";
 	}
@@ -93,8 +121,36 @@ public class ConfigAction extends ActionSupport {
         
         return "listScheduler";
     }
+    
+    /**
+     * 查看调度器的详细信息
+     * @return
+     * @throws Exception
+     */
+    public String queryScheduler() throws Exception{
+    	schedulerList = new ArrayList<Scheduler>();
+        Map<String,QuartzClient> instanceMap = QuartzClientContainer.getQuartzClientMap();
+        Collection<QuartzClient> instances = instanceMap.values();
+        for (QuartzClient quartzInstance : instances) {
+            schedulerList.addAll(quartzInstance.getSchedulerList());
+        }
+    	String uuid = ServletActionContext.getRequest().getParameter("uuid");
+    	Scheduler scheduler_query= null;
+    	for (Scheduler scheduler : schedulerList) {
+			if(scheduler.getConfig().getConfigId().equals(uuid)){
+				scheduler_query = scheduler;
+				break;
+			}
+		}
+		JsonUtil.toJson(new Gson().toJson(scheduler_query));
+		return null;
+    }
 
-	
+	/**
+	 * 查看连接的详细信息
+	 * @return
+	 * @throws Exception
+	 */
 	public String show() throws Exception {
 		QuartzConfig quartzConfig = QuartzClientContainer.getQuartzConfig(uuid);
 		log.info("get a quartz info! uuid:"+uuid);
@@ -106,6 +162,11 @@ public class ConfigAction extends ActionSupport {
 		return "show";
 	}
 	
+	/**
+	 * 更新连接信息 connect
+	 * @return
+	 * @throws Exception
+	 */
 	public String update() throws Exception {
 		QuartzConfig quartzConfig = new QuartzConfig(uuid,host, port, username,password);
 		QuartzClient client = new QuartzClient(quartzConfig);
@@ -125,6 +186,11 @@ public class ConfigAction extends ActionSupport {
 		return "update";
 	}
 	
+	/**
+	 * 删除连接信息
+	 * @return
+	 * @throws Exception
+	 */
 	public String delete() throws Exception {
 
 		QuartzClientContainer.removeQuartzConfig(uuid);
@@ -190,4 +256,13 @@ public class ConfigAction extends ActionSupport {
         this.schedulerList = schedulerList;
     }
 
+	public QuartzConfig getQ_config() {
+		return q_config;
+	}
+
+	public void setQ_config(QuartzConfig q_config) {
+		this.q_config = q_config;
+	}
+
+    
 }

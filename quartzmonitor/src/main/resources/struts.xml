@@ -60,6 +60,8 @@
 		<action name="delete" class="com.easeye.quartz.quartzmonitor.action.ConfigAction" method="delete">
 			<result name="delete" type="redirect">quartz/list.action</result>
 		</action>
+		<action name="queryScheduler" class="com.easeye.quartz.quartzmonitor.action.ConfigAction" method="queryScheduler">
+		</action>
 	</package>
 
 
