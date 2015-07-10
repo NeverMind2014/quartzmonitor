@@ -97,11 +97,11 @@
 						<tbody>
 						<c:forEach items="${schedulerList }" var="scheduler" varStatus="status">
 							<tr <c:if test="${status.index%2==0 }">class="alt"</c:if>>
-								<td>${scheduler.config.host }:${scheduler.config.port}</td>
+								<td>${scheduler.client.config.host }:${scheduler.client.config.port}</td>
 								<!-- 
 								<td>${scheduler.name}</td>
 								 -->
-								 <input type="hidden" value="${scheduler.config.configId}"/>
+								 <input type="hidden" value="${scheduler.client.config.configId}"/>
 								<td>${scheduler.objectName }</td>
 								<td>
 									<c:if test="${scheduler.shutdown}">

@@ -59,6 +59,7 @@ public class ConfigAction extends ActionSupport {
 	public String add() throws Exception {
 		String id = Tools.generateUUID();
 		QuartzConfig quartzConfig = new QuartzConfig(id, host, port, username, password);
+		QuartzClientContainer.addQuartzConfig(quartzConfig);
 		QuartzClient client = new QuartzClient(quartzConfig);
 		try {
 			client.init();
