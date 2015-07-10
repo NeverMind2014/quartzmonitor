@@ -135,7 +135,7 @@ public class Scheduler {
             {
                 try
                 {
-                    this.client.removeListener(this.objectName, listener, null, null);
+                    this.client.removeListener(this.objectName, listener, listener.getFilter(), listener.getHandback());
                 }
                 catch (Exception e)
                 {

@@ -96,15 +96,13 @@ public class QuartzClient{
                 scheduler.setClient(this);
                 schList.add(scheduler);
 //                根据需要增加对调度器的监听器
-                Map<String,String> handback = new HashMap<String,String>();
-                handback.put("schedulerName", scheduler.getName());
-                handback.put("configId", scheduler.getClient().getConfig().getConfigId());
-                handback.put("host", scheduler.getClient().getConfig().getHost());
-                handback.put("port", scheduler.getClient().getConfig().getPort()+"");
-                String jsonInfo = new Gson().toJson(handback);
-                SchedulerNotificationListener listener = new SchedulerNotificationListener();
-                jmxAdapter.attachListener(this, objectName,listener,null,jsonInfo);
-                scheduler.getListeners().add(listener);
+                Map<String,String> handbackMap = new HashMap<String,String>();
+                handbackMap.put("schedulerName", scheduler.getName());
+                handbackMap.put("configId", scheduler.getClient().getConfig().getConfigId());
+                handbackMap.put("host", scheduler.getClient().getConfig().getHost());
+                handbackMap.put("port", scheduler.getClient().getConfig().getPort()+"");
+                String handback = new Gson().toJson(handbackMap);
+                addSchedulerListener(scheduler,null,handback);
             }
             this.schedulerList = schList;
             //将config 和 client添加到缓存
@@ -118,10 +116,14 @@ public class QuartzClient{
 	    return this.isInitiated;
 	}
 	
-	public void destroy(){
-	    
+	private void addSchedulerListener(Scheduler scheduler,NotificationFilter filter,Object handback) throws Exception{
+        SchedulerNotificationListener listener = new SchedulerNotificationListener();
+        listener.setHandback(handback);
+        listener.setFilter(filter);
+        jmxAdapter.attachListener(this, scheduler.getObjectName(),listener,null,handback);
+        scheduler.getListeners().add(listener);
 	}
-    
+	
 	/**
      * addConnectionListener(给jmx连接增加一个监听器 来监控连接状态)
      * @return void 
