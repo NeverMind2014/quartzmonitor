@@ -1,8 +1,17 @@
 package com.easeye.quartz.quartzmonitor.core;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.easeye.quartz.quartzmonitor.object.QuartzConfig;
 
@@ -10,16 +19,45 @@ public class QuartzClientContainer {
 
 	private static Map<String, QuartzClient> quartzClientMap = new ConcurrentHashMap<String, QuartzClient>();
 	private static Map<String, QuartzConfig> configMap = new ConcurrentHashMap<String, QuartzConfig>();
+	private static Logger logger = LoggerFactory.getLogger(QuartzClientContainer.class);
+	private static final ExecutorService EXECUTOR  = Executors.newSingleThreadExecutor();
+	private static boolean isClosed = false;
+	
+	static{
+	    runBackGround();
+	}
+	
+	public static void close(){
+	    isClosed = true;
+	    EXECUTOR.shutdownNow();
+	    closeConnector();
+	}
 
+    private static void closeConnector(){
+        Set<Entry<String, QuartzClient>> entrySet = quartzClientMap.entrySet();
+        for (Entry<String, QuartzClient> entry : entrySet) {
+            QuartzClient client = entry.getValue();
+            try {
+                client.getJmxConnector().close();
+            }
+            catch (IOException e) {
+                logger.error(e.getMessage(),e);
+            }
+        }
+        
+    }
+	
 	public static void addQuartzClient(String id, QuartzClient client) {
+	    //标示连接成功
+	    configMap.get(id).setConnected(true);
 		quartzClientMap.put(id, client);
 	}
 
 	public static Map<String, QuartzClient> getQuartzClientMap() {
 		return Collections.unmodifiableMap(quartzClientMap);
 	}
-	public static void removeQuartzClient(String clientId){
-		quartzClientMap.remove(clientId);
+	public static void removeQuartzClient(String configId){
+		quartzClientMap.remove(configId);
 	}
 	
 	public static QuartzClient getQuartzClient(String clientId){
@@ -38,5 +76,47 @@ public class QuartzClientContainer {
 	}
 	public static void removeQuartzConfig(String config){
 		 configMap.remove(config);
+	}
+	
+	public static void runBackGround(){
+	    EXECUTOR.execute(new Runnable(){
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000*60*2);
+                }
+                catch (InterruptedException e) {
+                    logger.error(e.getMessage(), e);
+                }
+                while (!isClosed) {
+                    try {
+                    logger.info("=================定时检查断线连接开始=====================");
+                    Set<Entry<String, QuartzConfig>> entrySet = configMap.entrySet();
+                    for (Entry<String, QuartzConfig> entry : entrySet) {
+                        QuartzConfig config = entry.getValue();
+                        if (!config.isConnected()) {
+                            logger.info("=================检查到断线连接-:"+config.getHost()+":"+config.getPort()+"=====================");
+                            QuartzClient client = new QuartzClient(config);
+                            try {
+                                client.init();
+                            }
+                            catch (Exception e) {
+                                logger.error(e.getMessage(), e);
+                            }
+                        }
+                        if(!config.isConnected()){
+                            logger.info("================= 重连 "+config.getHost()+":"+config.getPort()+" 失败 =====================");
+                        }
+                    }
+                    logger.info("=================定时检查断线连接结束=====================");
+                        Thread.sleep(1000*60);
+                    }
+                    catch (Exception e) {
+                        logger.error(e.getMessage(), e);
+                    }
+                }
+            }
+	    });
+	    EXECUTOR.shutdown();
 	}
 }

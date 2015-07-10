@@ -15,7 +15,7 @@ import com.easeye.quartz.quartzmonitor.object.QuartzConfig;
 
 public class JMXUtil {
 
-	public static JMXServiceURL createQuartzInstanceConnection(QuartzConfig quartzConfig)
+	public static JMXServiceURL genJMXURL(QuartzConfig quartzConfig)
 			throws MalformedURLException {
 		StringBuffer stringBuffer = new StringBuffer().append("service:jmx:rmi://")
 		        .append(quartzConfig.getHost()).append("/jndi/rmi://")

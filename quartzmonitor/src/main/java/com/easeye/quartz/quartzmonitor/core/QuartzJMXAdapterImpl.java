@@ -16,7 +16,7 @@ import javax.management.openmbean.TabularDataSupport;
 
 import org.apache.log4j.Logger;
 
-import com.easeye.quartz.quartzmonitor.core.notificationlistener.MyNotificationListener;
+import com.easeye.quartz.quartzmonitor.core.notificationlistener.SchedulerNotificationListener;
 import com.easeye.quartz.quartzmonitor.object.JMXInput;
 import com.easeye.quartz.quartzmonitor.object.Job;
 import com.easeye.quartz.quartzmonitor.object.Scheduler;
@@ -55,7 +55,7 @@ public class QuartzJMXAdapterImpl implements QuartzJMXAdapter {
 				CompositeDataSupport compositeDataSupport = (CompositeDataSupport) object;
 				Job job = new Job();
 				job.setSchedulerName(scheduler.getName());
-				job.setQuartzConfigId(scheduler.getConfig().getConfigId());
+				job.setQuartzConfigId(scheduler.getClient().getConfig().getConfigId());
 				job.setRemoteSchedulerInstanceId(scheduler.getRemoteInstanceId());
 				job.setJobName((String) JMXUtil.convertToType(compositeDataSupport, "name"));
 				log.info("job name:"+job.getJobName());
@@ -65,6 +65,7 @@ public class QuartzJMXAdapterImpl implements QuartzJMXAdapter {
 				job.setGroup((String) JMXUtil.convertToType(compositeDataSupport, "group"));
 				job.setJobClass((String) JMXUtil.convertToType(compositeDataSupport, "jobClass"));
 				job.setScheduler(scheduler);
+				job.setQuartzConfigId(scheduler.getClient().getConfig().getConfigId());
 				// get Next Fire Time for job
 				List<Trigger> triggers = this.getTriggersForJob(client, scheduler,
 						job.getJobName(), job.getGroup());
@@ -132,7 +133,7 @@ public class QuartzJMXAdapterImpl implements QuartzJMXAdapter {
 	      scheduler.setShutdown((Boolean) connection.getAttribute(objectName, "Shutdown"));
 	      scheduler.setStarted((Boolean) connection.getAttribute(objectName, "Started"));
 	      scheduler.setStandByMode((Boolean) connection.getAttribute(objectName, "StandbyMode"));
-	      scheduler.setConfig(client.getConfig());;
+	      scheduler.setClient(client);
 	      scheduler.setVersion(this.getVersion(client, objectName));
 	      return scheduler;
 	}
@@ -320,5 +321,20 @@ public class QuartzJMXAdapterImpl implements QuartzJMXAdapter {
              }
           }
           return triggers;
+    }
+
+    @Override
+    public void schedulerStandby(QuartzClient client, Scheduler scheduler) throws Exception
+    {
+        JMXInput jmxInput = new JMXInput(client, new String[]{}, "standby", new Object[]{}, scheduler.getObjectName());
+        JMXUtil.callJMXOperation(jmxInput);
+        
+    }
+
+    @Override
+    public void schedulerStart(QuartzClient client, Scheduler scheduler) throws Exception
+    {
+        JMXInput jmxInput = new JMXInput(client, new String[]{}, "start", new Object[]{}, scheduler.getObjectName());
+        JMXUtil.callJMXOperation(jmxInput);
     }
 }

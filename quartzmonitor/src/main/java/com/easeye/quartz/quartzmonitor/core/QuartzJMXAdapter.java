@@ -48,5 +48,8 @@ public interface QuartzJMXAdapter {
 	public void resumeJob(QuartzClient client, Scheduler scheduler, Job job) throws Exception;
 	
 	public void resumeTrigger(QuartzClient client, Scheduler scheduler, Trigger trigger) throws Exception;
+	
+	public void schedulerStandby(QuartzClient client, Scheduler scheduler) throws Exception;
 
+	public void schedulerStart(QuartzClient client, Scheduler scheduler) throws Exception;
 }

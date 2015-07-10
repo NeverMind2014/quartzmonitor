@@ -10,7 +10,11 @@ public class QuartzConfig {
 	private int port;
 	private String userName;
 	private String password;
-	private boolean isConnected;
+	private boolean isConnected = false;//是否连接成功
+	
+	public static final String CONFIG_ID = "configId";
+	public static final String HOST = "host";
+	public static final String PORT = "port";
 
 	public QuartzConfig() {
 	}
@@ -80,5 +84,7 @@ public class QuartzConfig {
     public void setConnected(boolean isConnected) {
         this.isConnected = isConnected;
     }
+    
+    
 
 }

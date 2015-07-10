@@ -25,10 +25,8 @@ public class InitListener implements ServletContextListener {
 		try {
 			List<QuartzConfig> list = schedulerService.getALLQuartzConfigs();
 			for (QuartzConfig config : list) {
+			    QuartzClientContainer.addQuartzConfig(config);
 				try {
-				    
-//					QuartzConnectService quartzConnectService = new QuartzConnectServiceImpl();
-//					/*QuartzClient client = */quartzConnectService.initClient(config);
 					new QuartzClient(config).init();
 				} catch (FileNotFoundException e) {
 					logger.error(e.getMessage(), e);
@@ -42,38 +40,10 @@ public class InitListener implements ServletContextListener {
 			logger.error(ex.getMessage(), ex);
 			ex.printStackTrace();
 		}
-		
-		/*String path = Thread.currentThread().getContextClassLoader().getResource("").getPath() + "quartz-config";
-		String path = PropertiesUtil.getPropertiesValue(SystemConfigFile.SYSCONFIG, "configfilepath");
-		File file = new File(path);
-		if (!file.exists()) {
-			file.mkdirs();
-		} else {
-			File[] fileList = file.listFiles();
-			logger.info("find " + fileList.length + " configs of quartz config!");
-			for (int i = 0; i < fileList.length; i++) {
-				if (!fileList[i].isDirectory() && fileList[i].getName().startsWith("quartz-config-")) {
-					try {
-						QuartzConfig config = XstreamUtil.xml2Object(fileList[i].getAbsolutePath());
-						QuartzInstanceContainer.addQuartzConfig(config);
-						QuartzConnectService quartzConnectService = new QuartzConnectServiceImpl();
-						QuartzInstance quartzInstance = quartzConnectService.initInstance(config);
-						QuartzInstanceContainer.addQuartzInstance(config.getUuid(), quartzInstance);
-					} catch (FileNotFoundException e) {
-						logger.error(e.getMessage(), e);
-						e.printStackTrace();
-					} catch (Exception e) {
-						logger.error(e.getMessage(), e);
-						e.printStackTrace();
-					}
-				}
-			}
-		}*/
 	}
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
-		// TODO Auto-generated method stub
-
+	    QuartzClientContainer.close();
 	}
 }

@@ -2,6 +2,8 @@ package com.easeye.quartz.quartzmonitor.object;
 
 import javax.management.ObjectName;
 
+import com.easeye.quartz.quartzmonitor.core.QuartzClient;
+
 public class Scheduler {
 
 	private String name;
@@ -15,14 +17,18 @@ public class Scheduler {
 	private String jobStoreClassName;
 	private String threadPoolClassName;
 	private int threadPoolSize;
-	private QuartzConfig config;
+	private QuartzClient client;
 	
-	public QuartzConfig getConfig() {
-        return config;
+    public QuartzClient getClient() {
+        return client;
     }
 
-    public void setConfig(QuartzConfig config) {
-        this.config = config;
+    public void setClient(QuartzClient client) {
+        this.client = client;
+    }
+
+    public void setRemoteInstanceId(String remoteInstanceId) {
+        this.remoteInstanceId = remoteInstanceId;
     }
 
     public String getName() {

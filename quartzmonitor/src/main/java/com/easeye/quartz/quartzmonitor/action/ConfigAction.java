@@ -137,7 +137,7 @@ public class ConfigAction extends ActionSupport {
     	String uuid = ServletActionContext.getRequest().getParameter("uuid");
     	Scheduler scheduler_query= null;
     	for (Scheduler scheduler : schedulerList) {
-			if(scheduler.getConfig().getConfigId().equals(uuid)){
+			if(scheduler.getClient().getConfig().getConfigId().equals(uuid)){
 				scheduler_query = scheduler;
 				break;
 			}

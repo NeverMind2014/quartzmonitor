@@ -12,7 +12,7 @@ public class QuartzJMXAdapterFactory {
 	 * @return
 	 * @throws Exception
 	 */
-	public static QuartzJMXAdapter initQuartzJMXAdapter(ObjectName objectName, MBeanServerConnection connection) throws Exception {
+	public static QuartzJMXAdapter initQuartzJMXAdapter(MBeanServerConnection connection) throws Exception {
 		QuartzJMXAdapter jmxAdapter = new QuartzJMXAdapterImpl();
 		return jmxAdapter;
 	}
