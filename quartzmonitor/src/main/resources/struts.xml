@@ -78,20 +78,25 @@
 		<action name="resume" class="com.easeye.quartz.quartzmonitor.action.JobAction" method="resume">
 		</action>
 		<action name="show" class="com.easeye.quartz.quartzmonitor.action.JobAction" method="show">
-			<result name="add">/addJob.jsp</result>
+			<result name="add">/jobadd.jsp</result>
 		</action>
 		<action name="add" class="com.easeye.quartz.quartzmonitor.action.JobAction" method="add">
+			<result name="input">/jobadd.jsp</result>
+			<result name="success">/jobadd.jsp</result>
 		</action>
 		<action name="edit" class="com.easeye.quartz.quartzmonitor.action.JobAction" method="edit">
-			<result name="edit">/updateJob.jsp</result>
+			<result name="edit">/jobupdate.jsp</result>
 		</action>
 		<action name="update" class="com.easeye.quartz.quartzmonitor.action.JobAction" method="update">
+			<result name="input">/jobupdate.jsp</result>
+			<result name="success">/jobupdate.jsp</result>
+		</action>
+		<action name="getOneJob" class="com.easeye.quartz.quartzmonitor.action.JobAction" method="getOneJob">
 		</action>
 	</package>
 
 	<package name="trigger" extends="struts-default" namespace="/trigger">
 		<action name="list" class="com.easeye.quartz.quartzmonitor.action.TriggerAction" method="list">
-			<result name="list">/trigger_list.jsp</result>
 		</action>
 		<action name="delete" class="com.easeye.quartz.quartzmonitor.action.TriggerAction" method="delete">
 		</action>

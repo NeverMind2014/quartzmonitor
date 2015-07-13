@@ -43,13 +43,13 @@
 				<div class="grid_4">
 					<p> 
 						<label>连接名称<small>支持模糊查询</small></label>
-						<input type="text" name="quartzConfig.name" />
+						<input type="text" name="quartzConfig.name" value=""/>
 					</p>
 				</div>
 				<div class="grid_5">
 					<p>
 						<label>主机名</label>
-						<input name="quartzConfig.host" type="text" />
+						<input name="quartzConfig.host" type="text" value=""/>
 					</p>
 				</div>
 				

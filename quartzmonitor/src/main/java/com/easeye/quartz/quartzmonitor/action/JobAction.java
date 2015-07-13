@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 
 import com.easeye.quartz.quartzmonitor.core.QuartzClient;
@@ -17,13 +16,12 @@ import com.easeye.quartz.quartzmonitor.object.Job;
 import com.easeye.quartz.quartzmonitor.object.Result;
 import com.easeye.quartz.quartzmonitor.object.Scheduler;
 import com.easeye.quartz.quartzmonitor.object.Trigger;
-import com.easeye.quartz.quartzmonitor.service.JobService;
-import com.easeye.quartz.quartzmonitor.service.TriggerService;
-import com.easeye.quartz.quartzmonitor.service.impl.JobServiceImpl;
-import com.easeye.quartz.quartzmonitor.service.impl.TriggerServiceImpl;
 import com.easeye.quartz.quartzmonitor.util.JsonUtil;
 import com.easeye.quartz.quartzmonitor.util.Tools;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.opensymphony.xwork2.ActionSupport;
 
 public class JobAction extends ActionSupport {
@@ -51,6 +49,12 @@ public class JobAction extends ActionSupport {
 
 //	private JobService jobService = new JobServiceImpl();
 	
+	/**
+	 * 远程添加 trigger
+	 * @param trigger
+	 * @param job
+	 * @throws Exception
+	 */
 	private void addTriggerRemote(Trigger trigger, Job job) throws Exception {
 		HashMap<String, Object> triggerMap = new HashMap<String, Object>();
 		triggerMap.put("name", trigger.getName());
@@ -81,7 +85,11 @@ public class JobAction extends ActionSupport {
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
 		client.addJob(job.getSchedulerName(), map);
 	}
-	
+	/**
+	 * 查询所有job
+	 * @return
+	 * @throws Exception
+	 */
 	public String list() throws Exception {
 		Map<String, QuartzClient> quartzClientMap = QuartzClientContainer.getQuartzClientMap();
 		for (Map.Entry<String, QuartzClient> entry : quartzClientMap.entrySet()) {
@@ -100,12 +108,37 @@ public class JobAction extends ActionSupport {
 		return "list";
 	}
 
+	/**
+	 * 查询某一个job
+	 * @return
+	 * @throws Exception
+	 */
+	public void getOneJob() throws Exception{
+		Job job_1 = null;
+		Map<String, QuartzClient> quartzClientMap = QuartzClientContainer.getQuartzClientMap();
+		for (Map.Entry<String, QuartzClient> entry : quartzClientMap.entrySet()) {
+		    QuartzClient client = entry.getValue();
+            jobList.addAll(client.getAllJobs());
+		}
+		for (Job job_temp : jobList) {
+			if(job_temp.getQuartzConfigId().equals(job.getQuartzConfigId())&&job_temp.getJobName().equals(job.getJobName())&&job_temp.getGroup().equals(job.getGroup())){
+				job_1 = job_temp;
+				break;
+			}
+		}
+		ExclusionStrategy excludeStrategy = new SetterExclusionStrategy(new String[]{"schedulerList"});
+    	Gson gson = new GsonBuilder().setExclusionStrategies(excludeStrategy).create();
+		JsonUtil.toJson(gson.toJson(job_1));
+	}
+	
+	/**
+	 * 启动job  从服务端
+	 * @return
+	 * @throws Exception
+	 */
 	public String start() throws Exception {
-
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
-		
 		client.startJobNow(job.getSchedulerName(), job);
-
 		Result result = new Result();
 		result.setStatusCode("200");
 		result.setMessage("执行成功");
@@ -114,9 +147,13 @@ public class JobAction extends ActionSupport {
 		return null;
 	}
 
+	/**
+	 * 删除job
+	 * @return
+	 * @throws Exception
+	 */
 	public String delete() throws Exception {
-
-	    propJob();
+	    //propJob();
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
 		log.info("delete a quartz job!");
 		client.deleteJob(job.getSchedulerName(), job);
@@ -126,6 +163,11 @@ public class JobAction extends ActionSupport {
 		return null;
 	}
 
+	/**
+	 * 暂停job
+	 * @return
+	 * @throws Exception
+	 */
 	public String pause() throws Exception {
 //	    找到需要暂停的job的client
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
@@ -139,6 +181,11 @@ public class JobAction extends ActionSupport {
 		return null;
 	}
 
+	/**
+	 * 恢复job
+	 * @return
+	 * @throws Exception
+	 */
 	public String resume() throws Exception {
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
 		log.info("resume a quartz job!");
@@ -150,6 +197,11 @@ public class JobAction extends ActionSupport {
 		return null;
 	}
 
+	/**
+	 * 添加一个job
+	 * @return
+	 * @throws Exception
+	 */
 	public String show() throws Exception {
         schedulerList = new ArrayList<Scheduler>();
         Map<String,QuartzClient> clientMap = QuartzClientContainer.getQuartzClientMap();
@@ -186,38 +238,61 @@ public class JobAction extends ActionSupport {
 		}
 		map.put("durability", true);
 		map.put("jobDetailClass", "org.quartz.impl.JobDetailImpl");
+		try{
 		//找到需要增加job的client
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
 		//找到需要添加job的scheduler 并添加job
 		client.addJob(job.getSchedulerName(), map);
 		log.info("add job successfully!");
-
-		Result result = new Result();
-		result.setMessage("添加成功");
-		result.setCallbackType("");
-		JsonUtil.toJson(new Gson().toJson(result));
-		return null;
+		}catch (Exception e) {
+			this.addActionError("添加失败,"+e.getMessage());
+			 schedulerList = new ArrayList<Scheduler>();
+		     Map<String,QuartzClient> clientMap = QuartzClientContainer.getQuartzClientMap();
+		     Collection<QuartzClient> clients = clientMap.values();
+		     for (QuartzClient client : clients) {
+		         schedulerList.addAll(client.getSchedulerList());
+		     }
+			return "input";
+		}
+		this.addActionMessage("添加成功!");
+		return "success"; 
 	}
 
+	/**
+	 * 修改作业
+	 * @return
+	 * @throws Exception
+	 */
 	public String edit() throws Exception {
-	    propJob();
+	  //  propJob();
+		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
+		List<Job> jobs= client.getAllJobs();
+		for (Job job_1 : jobs) {
+			if(job_1.getJobName().equals(job.getJobName())&&job_1.getGroup().equals(job.getGroup())&&job_1.getSchedulerName().equals(job.getSchedulerName())){
+				job = job_1;
+			}
+		}
 		return "edit";
 	}
 	
-	private void propJob(){
-	    String[] props = jobuuid.split("@");
-        job = new Job();
-        job.setQuartzConfigId(props[0]);
-        job.setJobName(props[1]);
-        job.setGroup(props[2]);
-        job.setSchedulerName(props[3]);
-        job.setJobClass(props[4]);
-        if(props.length==6){
-            job.setDescription(props[5]);
-        }
-	}
+//	private void propJob(){
+//	    String[] props = jobuuid.split("@");
+//        job = new Job();
+//        job.setQuartzConfigId(props[0]);
+//        job.setJobName(props[1]);
+//        job.setGroup(props[2]);
+//        job.setSchedulerName(props[3]);
+//        job.setJobClass(props[4]);
+//        if(props.length==6){
+//            job.setDescription(props[5]);
+//        }
+//	}
+	/**
+	 * 更新作业
+	 * @return
+	 * @throws Exception
+	 */
 	public String update() throws Exception {
-		
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("name", job.getJobName());
 		map.put("group", job.getGroup());
@@ -227,12 +302,52 @@ public class JobAction extends ActionSupport {
 		map.put("jobDetailClass", "org.quartz.impl.JobDetailImpl");
 		
 		QuartzClient client = QuartzClientContainer.getQuartzClient(job.getQuartzConfigId());
-		client.updateJob(job.getSchedulerName(), map);
-		
-		Result result = new Result();
-		result.setMessage("修改成功");
-		JsonUtil.toJson(new Gson().toJson(result));
-		return null;
+		try {
+			client.updateJob(job.getSchedulerName(), map);
+		} catch (Exception e) {
+			// TODO: handle exception
+			this.addActionError("更新出错,"+e.getMessage());
+			return "input";
+		}
+		this.addActionMessage("更新成功!");
+		return "success";
+	}
+	
+	
+	/**
+	 * 过滤帮助类
+	 * 
+	 * @author bamboo
+	 * 
+	 */
+	private static class SetterExclusionStrategy implements ExclusionStrategy {
+		private String[] fields;
+
+		public SetterExclusionStrategy(String[] fields) {
+			this.fields = fields;
+
+		}
+
+		@Override
+		public boolean shouldSkipClass(Class<?> arg0) {
+			return false;
+		}
+
+		/**
+		 * 过滤字段的方法
+		 */
+		@Override
+		public boolean shouldSkipField(FieldAttributes f) {
+			if (fields != null) {
+				for (String name : fields) {
+					if (f.getName().equals(name)) {
+						/** true 代表此字段要过滤 */
+						return true;
+					}
+				}
+			}
+			return false;
+		}
 	}
 	
  	public List<Job> getJobList() {

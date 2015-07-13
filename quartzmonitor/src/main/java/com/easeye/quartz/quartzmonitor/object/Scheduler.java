@@ -3,6 +3,7 @@ package com.easeye.quartz.quartzmonitor.object;
 import javax.management.ObjectName;
 
 import com.easeye.quartz.quartzmonitor.core.QuartzClient;
+import com.google.gson.annotations.Expose;
 
 public class Scheduler {
 
@@ -17,7 +18,9 @@ public class Scheduler {
 	private String jobStoreClassName;
 	private String threadPoolClassName;
 	private int threadPoolSize;
+	@Expose
 	private QuartzClient client;
+	private QuartzConfig config;
 	
     public QuartzClient getClient() {
         return client;

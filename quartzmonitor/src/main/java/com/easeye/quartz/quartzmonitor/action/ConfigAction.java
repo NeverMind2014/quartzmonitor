@@ -13,13 +13,15 @@ import org.apache.struts2.ServletActionContext;
 import com.easeye.quartz.quartzmonitor.core.QuartzClient;
 import com.easeye.quartz.quartzmonitor.core.QuartzClientContainer;
 import com.easeye.quartz.quartzmonitor.object.QuartzConfig;
-import com.easeye.quartz.quartzmonitor.object.Result;
 import com.easeye.quartz.quartzmonitor.object.Scheduler;
 import com.easeye.quartz.quartzmonitor.service.QuartzConfigService;
 import com.easeye.quartz.quartzmonitor.service.impl.QuartzConfigServiceImpl;
 import com.easeye.quartz.quartzmonitor.util.JsonUtil;
 import com.easeye.quartz.quartzmonitor.util.Tools;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.opensymphony.xwork2.ActionSupport;
 
 public class ConfigAction extends ActionSupport {
@@ -143,7 +145,10 @@ public class ConfigAction extends ActionSupport {
 				break;
 			}
 		}
-		JsonUtil.toJson(new Gson().toJson(scheduler_query));
+    	scheduler_query.setConfig(scheduler_query.getClient().getConfig());
+    	ExclusionStrategy excludeStrategy = new SetterExclusionStrategy(new String[]{"client"});
+    	Gson gson = new GsonBuilder().setExclusionStrategies(excludeStrategy).create();
+		JsonUtil.toJson(gson.toJson(scheduler_query));
 		return null;
     }
 
@@ -194,15 +199,49 @@ public class ConfigAction extends ActionSupport {
 	 */
 	public String delete() throws Exception {
 
-		QuartzClientContainer.removeQuartzConfig(uuid);
-		QuartzClientContainer.removeQuartzClient(uuid);
+		QuartzClientContainer.getQuartzClient(uuid).close();
 		log.info("delete a quartz info!");
-		
 		configService.deleteQuartzConfig(uuid);
 		this.addActionMessage("删除成功"); 	
 		return "delete";
 	}
 	
+	
+	/**
+	 * 过滤帮助类
+	 * 
+	 * @author bamboo
+	 * 
+	 */
+	private static class SetterExclusionStrategy implements ExclusionStrategy {
+		private String[] fields;
+
+		public SetterExclusionStrategy(String[] fields) {
+			this.fields = fields;
+
+		}
+
+		@Override
+		public boolean shouldSkipClass(Class<?> arg0) {
+			return false;
+		}
+
+		/**
+		 * 过滤字段的方法
+		 */
+		@Override
+		public boolean shouldSkipField(FieldAttributes f) {
+			if (fields != null) {
+				for (String name : fields) {
+					if (f.getName().equals(name)) {
+						/** true 代表此字段要过滤 */
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+	}
 	
 	public String getHost() {
 		return host;
