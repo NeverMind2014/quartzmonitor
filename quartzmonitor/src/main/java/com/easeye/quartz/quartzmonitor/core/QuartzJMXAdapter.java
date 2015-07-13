@@ -25,6 +25,8 @@ public interface QuartzJMXAdapter {
 
 	public void attachListener(QuartzClient client, ObjectName objectName, NotificationListener listener, NotificationFilter filter, Object handback) throws Exception;
 
+	public void removeListener(QuartzClient client, ObjectName objectName, NotificationListener listener, NotificationFilter filter, Object handback) throws Exception;
+	
 	public Scheduler getSchedulerByJmx(QuartzClient client, ObjectName objectName) throws Exception;
 
 	public void startJobNow(QuartzClient client, Scheduler scheduler, Job job) throws Exception;

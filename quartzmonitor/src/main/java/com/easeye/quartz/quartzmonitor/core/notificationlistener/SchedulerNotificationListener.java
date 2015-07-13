@@ -1,14 +1,13 @@
 package com.easeye.quartz.quartzmonitor.core.notificationlistener;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.management.Notification;
+import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
-import javax.management.remote.JMXConnectionNotification;
 
-import org.quartz.core.jmx.QuartzSchedulerMBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +23,10 @@ import com.google.gson.Gson;
  */
 
 public class SchedulerNotificationListener implements NotificationListener {
+    
+    private NotificationFilter filter;
+    
+    private Object handback;
     
     private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -89,4 +92,23 @@ public class SchedulerNotificationListener implements NotificationListener {
         }
     }
 
+    public NotificationFilter getFilter()
+    {
+        return filter;
+    }
+
+    public void setFilter(NotificationFilter filter)
+    {
+        this.filter = filter;
+    }
+
+    public Object getHandback()
+    {
+        return handback;
+    }
+
+    public void setHandback(Object handback)
+    {
+        this.handback = handback;
+    }
 }

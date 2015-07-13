@@ -1,11 +1,13 @@
 package com.easeye.quartz.quartzmonitor.core;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.management.ListenerNotFoundException;
 import javax.management.MBeanServerConnection;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
@@ -43,6 +45,7 @@ public class QuartzClient{
 	private QuartzJMXAdapter jmxAdapter;
 	private List<Scheduler> schedulerList;
 	private boolean isInitiated = false;
+	private List<ConnectionListener> connectionListeners = new ArrayList<ConnectionListener>();
 	
 	public QuartzClient(QuartzConfig config){
 	    this.config = config;
@@ -73,6 +76,7 @@ public class QuartzClient{
             JMXServiceURL jmxServiceURL = JMXUtil.genJMXURL(config);
             //建立连接
             JMXConnector connector = JMXConnectorFactory.connect(jmxServiceURL, env);
+            this.config.setConnected(true);
             MBeanServerConnection connection = connector.getMBeanServerConnection();
             QuartzJMXAdapter adapter = QuartzJMXAdapterFactory.initQuartzJMXAdapter(connection);
             
@@ -91,19 +95,19 @@ public class QuartzClient{
                 Scheduler scheduler = getSchedulerByJmx(objectName);
                 scheduler.setClient(this);
                 schList.add(scheduler);
-//            根据需要增加对调度器的监听器
-                Map<String,String> handback = new HashMap<String,String>();
-                handback.put("schedulerName", scheduler.getName());
-                handback.put("configId", scheduler.getClient().getConfig().getConfigId());
-                handback.put("host", scheduler.getClient().getConfig().getHost());
-                handback.put("port", scheduler.getClient().getConfig().getPort()+"");
-                String jsonInfo = new Gson().toJson(handback);
-                jmxAdapter.attachListener(this, objectName,new SchedulerNotificationListener(),null,jsonInfo);
+//                根据需要增加对调度器的监听器
+                Map<String,String> handbackMap = new HashMap<String,String>();
+                handbackMap.put("schedulerName", scheduler.getName());
+                handbackMap.put("configId", scheduler.getClient().getConfig().getConfigId());
+                handbackMap.put("host", scheduler.getClient().getConfig().getHost());
+                handbackMap.put("port", scheduler.getClient().getConfig().getPort()+"");
+                String handback = new Gson().toJson(handbackMap);
+                addSchedulerListener(scheduler,null,handback);
             }
             this.schedulerList = schList;
             //将config 和 client添加到缓存
-            QuartzClientContainer.addQuartzClient(config.getConfigId(), this);
             this.isInitiated = true;
+            QuartzClientContainer.addQuartzClient(config.getConfigId(), this);
             logger.info("成功连接到远端JMX服务,服务信息："+jmxServiceURL);
         }
         catch (Exception e) {
@@ -112,10 +116,14 @@ public class QuartzClient{
 	    return this.isInitiated;
 	}
 	
-	public void destroy(){
-	    
+	private void addSchedulerListener(Scheduler scheduler,NotificationFilter filter,Object handback) throws Exception{
+        SchedulerNotificationListener listener = new SchedulerNotificationListener();
+        listener.setHandback(handback);
+        listener.setFilter(filter);
+        jmxAdapter.attachListener(this, scheduler.getObjectName(),listener,null,handback);
+        scheduler.getListeners().add(listener);
 	}
-    
+	
 	/**
      * addConnectionListener(给jmx连接增加一个监听器 来监控连接状态)
      * @return void 
@@ -129,7 +137,9 @@ public class QuartzClient{
         connectionInfo.put(QuartzConfig.CONFIG_ID, config.getConfigId());
         String jsonInfo = new Gson().toJson(connectionInfo);
         //添加一个监听器 监听连接状态
-        jmxConnector.addConnectionNotificationListener(new ConnectionListener(), null, jsonInfo);
+        ConnectionListener listener = new ConnectionListener();
+        connectionListeners.add(listener);
+        jmxConnector.addConnectionNotificationListener(listener, null, jsonInfo);
     }
 
     public String getVersion( ObjectName objectName) throws Exception {
@@ -158,6 +168,12 @@ public class QuartzClient{
     public void attachListener( ObjectName objectName, NotificationListener listener, NotificationFilter filter, Object handback) throws Exception {
         
         this.jmxAdapter.attachListener(this, objectName, listener, filter, handback);
+    }
+
+    
+    public void removeListener( ObjectName objectName, NotificationListener listener, NotificationFilter filter, Object handback) throws Exception {
+        
+        this.jmxAdapter.removeListener(this, objectName, listener, filter, handback);
     }
 
     
@@ -322,5 +338,32 @@ public class QuartzClient{
         sb.append(", schedulerList=").append(schedulerList);
         sb.append('}');
         return sb.toString();
+    }
+    
+    public void close() throws IOException{
+        //remove connectionListener if any
+        if(CollectionUtils.isNotEmpty(connectionListeners)){
+            for (ConnectionListener listener : connectionListeners)
+            {
+                try
+                {
+                    this.jmxConnector.removeConnectionNotificationListener(listener);
+                }
+                catch (ListenerNotFoundException e)
+                {
+                    logger.error(e.getMessage(),e);
+                }
+            }
+        }
+        //close scheduler
+        if(CollectionUtils.isNotEmpty(schedulerList)){
+            for (Scheduler sched : schedulerList)
+            {
+                sched.close();
+            }
+        }
+        this.jmxConnector.close();
+        QuartzClientContainer.removeQuartzConfig(this.getConfig().getConfigId());
+        QuartzClientContainer.removeQuartzClient(this.getConfig().getConfigId());
     }
 }
